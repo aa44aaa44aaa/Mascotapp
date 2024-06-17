@@ -40,7 +40,7 @@
               lockAspectRatio: true,
               aspectRatioPresets: [
                 CropAspectRatioPreset.ratio4x5,
-                CropAspectRatioPreset.ratio5x4,
+                //CropAspectRatioPreset.ratio5x4,
                 CropAspectRatioPreset.ratio16x9,
                 CropAspectRatioPreset.square,
               ],
