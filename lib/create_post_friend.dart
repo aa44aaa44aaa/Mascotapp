@@ -38,10 +38,10 @@ class _CreatePostFriendScreenState extends State<CreatePostFriendScreen> {
             toolbarTitle: 'Recortar Imagen',
             toolbarColor: Color.fromRGBO(130, 34, 255, 1),
             toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.ratio4x5,
+            initAspectRatio: CropAspectRatioPreset.square,
             lockAspectRatio: true,
             aspectRatioPresets: [
-              CropAspectRatioPreset.ratio4x5,
+              //CropAspectRatioPreset.ratio4x5,
               //CropAspectRatioPreset.ratio5x4,
               CropAspectRatioPreset.ratio16x9,
               CropAspectRatioPreset.square,
