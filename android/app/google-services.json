@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "671382132298",
+    "project_id": "mascotas-9e2a1",
+    "storage_bucket": "mascotas-9e2a1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:671382132298:android:0ad9e4bf8dbfd707d8b8b3",
+        "android_client_info": {
+          "package_name": "com.mascotapp.lv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "671382132298-3178cjt8qt6925e1f5t1pomerejeffic.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfUfWiBrGvWfrIATMkxoW8DOmJGCsRJEU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "671382132298-3178cjt8qt6925e1f5t1pomerejeffic.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "671382132298-kh706r9kuegnbesm85vo8i6li8jugnq4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mastocapp.lvapps"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:671382132298:android:abdb515db65c348cd8b8b3",
+        "android_client_info": {
+          "package_name": "com.mascotapp.lv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "671382132298-3178cjt8qt6925e1f5t1pomerejeffic.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfUfWiBrGvWfrIATMkxoW8DOmJGCsRJEU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "671382132298-3178cjt8qt6925e1f5t1pomerejeffic.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "671382132298-kh706r9kuegnbesm85vo8i6li8jugnq4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mastocapp.lvapps"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

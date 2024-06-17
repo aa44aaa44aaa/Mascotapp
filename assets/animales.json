@@ -1,0 +1,100 @@
+{
+    "animales": [
+      {
+        "nombre": "Perro",
+        "razas": [
+          "Labrador Retriever",
+          "Bulldog",
+          "Golden Retriever",
+          "Pastor Alemán",
+          "Caniche",
+          "Chihuahua",
+          "Poodle",
+          "Dálmata",
+          "Boxer",
+          "Rottweiler",
+          "Husky Siberiano",
+          "Bichón Frisé",
+          "Shih Tzu",
+          "Bull Terrier",
+          "Cocker Spaniel",
+          "Border Collie",
+          "Yorkshire Terrier",
+          "Pug",
+          "Dobermann",
+          "Shar Pei",
+          "Mastín",
+          "Pitbull",
+          "Setter Irlandés",
+          "San Bernardo",
+          "Basset Hound",
+          "Whippet",
+          "Dachshund",
+          "Schnauzer",
+          "Cane Corso",
+          "Akita"
+        ]
+      },
+      {
+        "nombre": "Gato",
+        "razas": [
+          "Siamés",
+          "Persa",
+          "Bengala",
+          "Maine Coon",
+          "Sphynx",
+          "Ragdoll",
+          "British Shorthair",
+          "Scottish Fold",
+          "Manx",
+          "Siamese",
+          "Norwegian Forest Cat",
+          "Russian Blue",
+          "Oriental",
+          "Balinese",
+          "Himalayan",
+          "Abyssinian",
+          "Burmese",
+          "Tonkinese",
+          "Devon Rex",
+          "Cornish Rex",
+          "American Shorthair",
+          "Egyptian Mau",
+          "Japanese Bobtail",
+          "Turkish Angora",
+          "Turkish Van"
+        ]
+      },
+      {
+        "nombre": "Conejo",
+        "razas": [
+          "Holandés",
+          "Mini Lop",
+          "Angora",
+          "Rex",
+          "Belier"
+        ]
+      },
+      {
+        "nombre": "Pez",
+        "razas": [
+          "Guppy",
+          "Betta",
+          "Goldfish",
+          "Corydoras",
+          "Neón Tetra"
+        ]
+      },
+      {
+        "nombre": "Pájaro",
+        "razas": [
+          "Canario",
+          "Periquito",
+          "Loro",
+          "Cacatúa",
+          "Jilguero"
+        ]
+      }
+    ]
+  }
+  
