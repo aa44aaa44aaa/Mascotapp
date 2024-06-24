@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'pet_register.dart';
 import 'edit_pet.dart';
-import 'pet_profile.dart'; // Asegúrate de tener esta importación
+import 'pet_profile.dart';
 
 class PetsScreen extends StatefulWidget {
   @override
@@ -23,9 +23,6 @@ class _PetsScreenState extends State<PetsScreen> {
     }
 
     return Scaffold(
-      //appBar: AppBar(
-      //  title: Text('Mis Mascotas'),
-      //),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('pets')
@@ -55,6 +52,34 @@ class _PetsScreenState extends State<PetsScreen> {
               var birthDate = (pet['birthDate'] as Timestamp).toDate();
               var formattedBirthDate = DateFormat('dd-MM-yyyy').format(birthDate);
               var isVerified = pet['verified'] ?? false;
+              var estado = pet['estado'] ?? '';
+
+              Color? labelColor;
+              IconData? icon;
+              String? labelText;
+
+              switch (estado) {
+                case 'perdido':
+                  labelColor = Colors.red;
+                  icon = Icons.location_off;
+                  labelText = 'Me perdí :(';
+                  break;
+                case 'enmemoria':
+                  labelColor = Colors.blueAccent;
+                  icon = Icons.book;
+                  labelText = 'En memoria';
+                  break;
+                case 'enadopcion':
+                  labelColor = Colors.brown;
+                  icon = Icons.pets;
+                  labelText = 'En adopción';
+                  break;
+                default:
+                  labelColor = null;
+                  icon = null;
+                  labelText = null;
+                  break;
+              }
 
               return Card(
                 child: ListTile(
@@ -91,6 +116,24 @@ class _PetsScreenState extends State<PetsScreen> {
                       Text('Tipo: ${pet['petType']}'),
                       Text('Raza: ${pet['petBreed']}'),
                       Text('Fecha de nacimiento: $formattedBirthDate'),
+                      if (labelText != null && labelColor != null && icon != null)
+                        Container(
+                          padding: EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: labelColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(icon, color: Colors.white, size: 16),
+                              SizedBox(width: 4),
+                              Text(
+                                labelText,
+                                style: TextStyle(color: Colors.white, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                   trailing: IconButton(

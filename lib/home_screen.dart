@@ -8,6 +8,8 @@ import 'create_post.dart';
 import 'notifications_screen.dart';
 import 'feed_screen.dart';
 import 'pending_posts_screen.dart';
+import 'login_screen.dart';
+import 'user_edit.dart'; // Importa el archivo user_edit.dart
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -23,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _notificationCount = 0;
   int _pendingPostCount = 0;
   bool _isPetOwner = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -103,8 +106,16 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  Future<void> _logout() async {
+    await _auth.signOut();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
+
   final List<Widget> _screens = [
     FeedScreen(),
+    //FeedScreen(),
     CreatePostScreen(),
     PetsScreen(),
   ];
@@ -112,6 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer: _buildDrawer(),
       appBar: AppBar(
         title: Text('MascotAPP'),
         automaticallyImplyLeading: false,
@@ -155,20 +168,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             ],
           ),
-          Stack(
-            children: [
-              IconButton(
-                icon: Icon(Icons.camera_alt),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PendingPostsScreen(),
-                    ),
-                  ).then((value) => _loadPendingPosts());
-                },
-              ),
-              if (_isPetOwner && _pendingPostCount > 0)
+          if (_isPetOwner && _pendingPostCount > 0)
+            Stack(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.camera_alt),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PendingPostsScreen(),
+                      ),
+                    ).then((value) => _loadPendingPosts());
+                  },
+                ),
                 Positioned(
                   right: 11,
                   top: 11,
@@ -192,8 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-            ],
-          ),
+              ],
+            ),
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -202,6 +215,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context) => UserProfileScreen(),
                 ),
               );
+            },
+            onLongPress: () {
+              _scaffoldKey.currentState?.openEndDrawer();
             },
             child: CircleAvatar(
               backgroundImage: profileImageUrl != null
@@ -222,8 +238,12 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Inicio',
+            label: 'Feed',
           ),
+          //BottomNavigationBarItem(
+          //  icon: Icon(Icons.home),
+          //  label: 'Feed2',
+          //),
           BottomNavigationBarItem(
             icon: Icon(Icons.camera_alt),
             label: 'Crear Post',
@@ -235,6 +255,45 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+      ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.blue,
+            ),
+            child: Text(
+              'Menú',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Configuración'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserEditScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.exit_to_app),
+            title: Text('Salir'),
+            onTap: _logout,
+          ),
+        ],
       ),
     );
   }

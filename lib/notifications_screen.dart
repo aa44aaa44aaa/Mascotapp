@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'single_post_screen.dart';  // Importar SinglePostScreen
+import 'single_post_screen.dart';
 
 class NotificationsScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -44,13 +44,14 @@ class NotificationsScreen extends StatelessWidget {
           return ListView.builder(
             itemCount: notifications.length,
             itemBuilder: (context, index) {
-              var notificationData = notifications[index].data();
-              if (notificationData == null) {
-                return ListTile(
-                  title: Text('Notification data is null'),
-                );
+              var notificationData = notifications[index].data() as Map<String, dynamic>;
+
+              // Mark the notification as read when it's displayed
+              if (!notificationData['isRead']) {
+                _firestore.collection('notifications').doc(notifications[index].id).update({
+                  'isRead': true,
+                });
               }
-              var notification = notificationData as Map<String, dynamic>;
 
               return Dismissible(
                 key: Key(notifications[index].id),
@@ -60,7 +61,7 @@ class NotificationsScreen extends StatelessWidget {
 
                   // Show a snackbar to confirm deletion
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Notification dismissed')),
+                    SnackBar(content: Text('Notificación borrada')),
                   );
                 },
                 background: Container(
@@ -82,7 +83,7 @@ class NotificationsScreen extends StatelessWidget {
                   ),
                 ),
                 child: FutureBuilder<DocumentSnapshot>(
-                  future: _firestore.collection('users').doc(notification['sender']).get(),
+                  future: _firestore.collection('users').doc(notificationData['sender']).get(),
                   builder: (context, userSnapshot) {
                     if (userSnapshot.connectionState == ConnectionState.waiting) {
                       return ListTile(
@@ -105,16 +106,10 @@ class NotificationsScreen extends StatelessWidget {
                       );
                     }
 
-                    var senderData = userSnapshot.data!.data();
-                    if (senderData == null) {
-                      return ListTile(
-                        title: Text('Sender data is null'),
-                      );
-                    }
-                    var sender = senderData as Map<String, dynamic>;
+                    var senderData = userSnapshot.data!.data() as Map<String, dynamic>;
 
                     return FutureBuilder<DocumentSnapshot>(
-                      future: _firestore.collection('posts').doc(notification['postId']).get(),
+                      future: _firestore.collection('posts').doc(notificationData['postId']).get(),
                       builder: (context, postSnapshot) {
                         if (postSnapshot.connectionState == ConnectionState.waiting) {
                           return ListTile(
@@ -137,25 +132,19 @@ class NotificationsScreen extends StatelessWidget {
                           );
                         }
 
-                        var postData = postSnapshot.data!.data();
-                        if (postData == null) {
-                          return ListTile(
-                            title: Text('Post data is null'),
-                          );
-                        }
-                        var post = postData as Map<String, dynamic>;
+                        var postData = postSnapshot.data!.data() as Map<String, dynamic>;
 
                         return ListTile(
-                          title: Text(notification['type'] == 'like'
+                          title: Text(notificationData['type'] == 'like'
                               ? 'Ha dado like a tu post'
                               : 'Ha comentado tu post'),
-                          subtitle: Text('@${sender['username']}'),
+                          subtitle: Text('@${senderData['username']}'),
                           trailing: GestureDetector(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => SinglePostScreen(postId: notification['postId']),
+                                  builder: (context) => SinglePostScreen(postId: notificationData['postId']),
                                 ),
                               );
                             },
@@ -164,7 +153,7 @@ class NotificationsScreen extends StatelessWidget {
                               height: 50,
                               decoration: BoxDecoration(
                                 image: DecorationImage(
-                                  image: CachedNetworkImageProvider(post['postImageUrl']),
+                                  image: CachedNetworkImageProvider(postData['postImageUrl']),
                                   fit: BoxFit.cover,
                                 ),
                                 borderRadius: BorderRadius.circular(8),
@@ -172,10 +161,13 @@ class NotificationsScreen extends StatelessWidget {
                             ),
                           ),
                           onTap: () {
-                            // Mark notification as read
-                            _firestore.collection('notifications').doc(notifications[index].id).update({
-                              'isRead': true,
-                            });
+                            // Navigate to post
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SinglePostScreen(postId: notificationData['postId']),
+                              ),
+                            );
                           },
                         );
                       },

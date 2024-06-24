@@ -6,9 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image/image.dart' as img;
 import 'dart:io';
-import 'dart:convert'; // Importar para manejar JSON
-import 'package:flutter/services.dart' show rootBundle; // Importar para cargar el JSON desde assets
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart'; // Importar el paquete de AwesomeSnackBar
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class PetRegisterScreen extends StatefulWidget {
   @override
@@ -22,8 +22,11 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
 
   String? petName, petType, petBreed;
   DateTime? birthDate;
+  int? ageYears;
+  int? ageMonths;
   File? _petImage;
-  bool _isLoading = false; // Controlador de estado de carga
+  bool _isLoading = false;
+  bool _knowsExactDate = true;
 
   final picker = ImagePicker();
   List<String> animalTypes = [];
@@ -82,10 +85,10 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
   }
 
   Future<void> _registerPet() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _petImage != null) {
       _formKey.currentState!.save();
       setState(() {
-        _isLoading = true; // Iniciar animación de carga
+        _isLoading = true;
       });
       try {
         User? user = _auth.currentUser;
@@ -105,12 +108,21 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
           }
         }
 
+        DateTime birthDateToSave;
+        if (_knowsExactDate && birthDate != null) {
+          birthDateToSave = birthDate!;
+        } else if (ageYears != null && ageMonths != null) {
+          birthDateToSave = DateTime.now().subtract(Duration(days: (ageYears! * 365) + (ageMonths! * 30)));
+        } else {
+          throw Exception('Debe proporcionar una fecha de nacimiento o una edad válida.');
+        }
+
         await _firestore.collection('pets').add({
           'owner': user!.uid,
           'petName': petName,
           'petType': petType,
           'petBreed': petBreed,
-          'birthDate': birthDate,
+          'birthDate': birthDateToSave,
           'petImageUrl': imageUrl,
           'verified': false,
         });
@@ -145,9 +157,22 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
         );
       } finally {
         setState(() {
-          _isLoading = false; // Terminar animación de carga
+          _isLoading = false;
         });
       }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: AwesomeSnackbarContent(
+            title: 'Error',
+            message: 'Debe proporcionar una imagen de la mascota.',
+            contentType: ContentType.failure,
+          ),
+          backgroundColor: Colors.transparent,
+          behavior: SnackBarBehavior.floating,
+          elevation: 0,
+        ),
+      );
     }
   }
 
@@ -237,34 +262,93 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
                       );
                     },
                   ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Fecha de nacimiento'),
-                    readOnly: true,
-                    onTap: () async {
-                      FocusScope.of(context).requestFocus(FocusNode());
-                      DateTime? picked = await showDatePicker(
+                  SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RadioListTile<bool>(
+                          title: Text('Conozco la fecha exacta'),
+                          value: true,
+                          groupValue: _knowsExactDate,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _knowsExactDate = value!;
+                            });
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: RadioListTile<bool>(
+                          title: Text('No sé la fecha exacta'),
+                          value: false,
+                          groupValue: _knowsExactDate,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _knowsExactDate = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_knowsExactDate)
+                    TextFormField(
+                      decoration: InputDecoration(labelText: 'Fecha de nacimiento'),
+                      readOnly: true,
+                      onTap: () async {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        DateTime? picked = await showDatePicker(
                           context: context,
                           initialDate: DateTime.now(),
                           firstDate: DateTime(1900),
-                          lastDate: DateTime.now());
-                      if (picked != null && picked != birthDate) {
-                        setState(() {
-                          birthDate = picked;
-                        });
-                      }
-                    },
-                    validator: (value) {
-                      if (birthDate == null) return 'Ingresa su fecha de nacimiento';
-                      return null;
-                    },
-                    controller: TextEditingController(
-                      text: birthDate != null ? "${birthDate!.toLocal()}".split(' ')[0] : '',
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null && picked != birthDate) {
+                          setState(() {
+                            birthDate = picked;
+                          });
+                        }
+                      },
+                      validator: (value) {
+                        if (birthDate == null) return 'Ingresa su fecha de nacimiento';
+                        return null;
+                      },
+                      controller: TextEditingController(
+                        text: birthDate != null ? "${birthDate!.toLocal()}".split(' ')[0] : '',
+                      ),
                     ),
-                  ),
+                  if (!_knowsExactDate)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            decoration: InputDecoration(labelText: 'Años'),
+                            keyboardType: TextInputType.number,
+                            onSaved: (value) => ageYears = int.tryParse(value!),
+                            validator: (value) {
+                              if (value!.isEmpty) return 'Ingresa los años';
+                              return null;
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 16.0),
+                        Expanded(
+                          child: TextFormField(
+                            decoration: InputDecoration(labelText: 'Meses'),
+                            keyboardType: TextInputType.number,
+                            onSaved: (value) => ageMonths = int.tryParse(value!),
+                            validator: (value) {
+                              if (value!.isEmpty) return 'Ingresa los meses';
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _registerPet,
-                    child: _isLoading 
+                    child: _isLoading
                         ? CircularProgressIndicator(color: Colors.white)
                         : Text('Registrar Mascota'),
                   ),

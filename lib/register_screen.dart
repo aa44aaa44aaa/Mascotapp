@@ -291,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 'assets/cat.svg', // Assumed your SVG image path
                 height: 200,
               ),
-            Text('Primero, ingresa tus credenciales'),
+            Text('Primero, ingresa tus credenciales.'),
             SizedBox(height: 16.0),
             TextFormField(
               decoration: InputDecoration(

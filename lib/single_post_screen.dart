@@ -19,6 +19,7 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
   final currentUser = FirebaseAuth.instance.currentUser;
 
   late Future<DocumentSnapshot> postFuture;
+  bool inAdoption = false;
 
   @override
   void initState() {
@@ -208,6 +209,9 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
               var ownerId = pet['owner'];
               bool isVerified = pet['verified'] ?? false;
 
+              // Check if pet is in adoption
+              inAdoption = pet['inAdoption'] ?? false;
+
               return FutureBuilder<DocumentSnapshot>(
                 future: _firestore.collection('users').doc(postedBy).get(),
                 builder: (context, ownerSnapshot) {
@@ -222,96 +226,125 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
 
                   return SingleChildScrollView(
                     child: Card(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack(
                         children: [
-                          ListTile(
-                            leading: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UserProfileScreen(userId: postedBy),
-                                  ),
-                                );
-                              },
-                              child: CircleAvatar(
-                                backgroundImage: pet['petImageUrl'] != null
-                                    ? CachedNetworkImageProvider(pet['petImageUrl'])
-                                    : AssetImage('assets/default_profile.png') as ImageProvider,
-                              ),
-                            ),
-                            title: Row(
-                              children: [
-                                Text(pet['petName']),
-                                if (isVerified)
-                                  Icon(
-                                    Icons.verified,
-                                    color: Colors.blue,
-                                    size: 16.0,
-                                  ),
-                              ],
-                            ),
-                            subtitle: Text('Tomada el: $formattedDate'),
-                          ),
-                          Container(
-                            width: double.infinity,
-                            child: CachedNetworkImage(
-                              imageUrl: post['postImageUrl'],
-                              placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                              errorWidget: (context, url, error) => Icon(Icons.error),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UserProfileScreen(userId: postedBy),
-                                  ),
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundImage: owner['profileImageUrl'] != null
-                                        ? CachedNetworkImageProvider(owner['profileImageUrl'])
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                leading: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserProfileScreen(userId: postedBy),
+                                      ),
+                                    );
+                                  },
+                                  child: CircleAvatar(
+                                    backgroundImage: pet['petImageUrl'] != null
+                                        ? CachedNetworkImageProvider(pet['petImageUrl'])
                                         : AssetImage('assets/default_profile.png') as ImageProvider,
                                   ),
-                                  SizedBox(width: 8.0),
-                                  Text('@${owner['username']}'),
+                                ),
+                                title: Row(
+                                  children: [
+                                    Text(pet['petName']),
+                                    if (isVerified)
+                                      Icon(
+                                        Icons.verified,
+                                        color: Colors.blue,
+                                        size: 16.0,
+                                      ),
+                                  ],
+                                ),
+                                subtitle: Text('Subida el: $formattedDate'),
+                              ),
+                              Container(
+                                width: double.infinity,
+                                child: CachedNetworkImage(
+                                  imageUrl: post['postImageUrl'],
+                                  placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                                  errorWidget: (context, url, error) => Icon(Icons.error),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserProfileScreen(userId: postedBy),
+                                      ),
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundImage: owner['profileImageUrl'] != null
+                                            ? CachedNetworkImageProvider(owner['profileImageUrl'])
+                                            : AssetImage('assets/default_profile.png') as ImageProvider,
+                                      ),
+                                      SizedBox(width: 8.0),
+                                      Text('@${owner['username']}'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(post['text'] ?? ''),
+                              ),
+                              ButtonBar(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      likedByCurrentUser ? Icons.favorite : Icons.favorite_outline,
+                                      color: likedByCurrentUser ? Colors.red : null,
+                                    ),
+                                    onPressed: () {
+                                      _toggleLikePost(widget.postId, currentUser!.uid, likedByCurrentUser, postedBy);
+                                    },
+                                  ),
+                                  Text('$likeCount likes'),
+                                  IconButton(
+                                    icon: Icon(Icons.comment),
+                                    onPressed: () {
+                                      _showCommentDialog(context, widget.postId, postedBy);
+                                    },
+                                  ),
                                 ],
                               ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(post['text'] ?? ''),
-                          ),
-                          ButtonBar(
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  likedByCurrentUser ? Icons.favorite : Icons.favorite_outline,
-                                  color: likedByCurrentUser ? Colors.red : null,
-                                ),
-                                onPressed: () {
-                                  _toggleLikePost(widget.postId, currentUser!.uid, likedByCurrentUser, postedBy);
-                                },
-                              ),
-                              Text('$likeCount likes'),
-                              IconButton(
-                                icon: Icon(Icons.comment),
-                                onPressed: () {
-                                  _showCommentDialog(context, widget.postId, postedBy);
-                                },
-                              ),
+                              _buildCommentsSection(widget.postId),
                             ],
                           ),
-                          _buildCommentsSection(widget.postId),
+                          if (inAdoption)
+                            Positioned(
+                              top: 0,
+                              right: 16,
+                              child: Container(
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.brown,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.pets, color: Colors.white, size: 16),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '¡Adóptame!',
+                                      style: TextStyle(color: Colors.white, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

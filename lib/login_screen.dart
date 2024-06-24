@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    //_checkAuthState();
+    _checkAuthState();
   }
 
   void _checkAuthState() {
@@ -43,16 +43,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (!userCredential.user!.emailVerified) {
           ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-            behavior: SnackBarBehavior.floating,
-            elevation: 1,
-            content: AwesomeSnackbarContent(
-              title: 'Verificación',
-              message: 'Necesitamos verificarte, revisa tu correo porfavor',
-              contentType: ContentType.warning,
+            SnackBar(
+              backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+              behavior: SnackBarBehavior.floating,
+              elevation: 1,
+              content: AwesomeSnackbarContent(
+                title: 'Verificación',
+                message: 'Necesitamos verificarte, revisa tu correo porfavor',
+                contentType: ContentType.warning,
+              ),
             ),
-          ),
           );
           return;
         }
@@ -132,11 +132,11 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 16.0),
               TextButton(
                 onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => RegisterScreen()),
-                      );
-                    },
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => RegisterScreen()),
+                  );
+                },
                 child: Text("Aún no tienes cuenta? Registrate!"),
               ),
             ],
