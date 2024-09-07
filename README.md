@@ -24,5 +24,5 @@ Mascotapp es una aplicación móvil desarrollada en Flutter que tiene como objet
 
 - **Lenguaje de programación:** Dart
 - **Framework:** Flutter
-- **Backend:** Firebase
-- **Base de datos:** Firestore / Realtime Database
+- **Base de datos:** Firestore Database
+- **Almacenamiento de datos:** Firebase Cloud Storage
