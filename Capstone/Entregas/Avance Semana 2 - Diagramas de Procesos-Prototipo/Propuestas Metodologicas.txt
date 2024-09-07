@@ -1,0 +1,25 @@
+Propuesta 1:
+Administracion (?)
+Planificacion
+Desarrollo
+Testing
+Despliegue
+Mantenimiento
+
+EDT
+WBSCHART
+
+
+
+Propuesta 2:
+Necesidad
+Requisitos
+Analisis
+Diseño
+Desarrollo (Funcional-No Funcional)
+Testing (QA)
+Despliegue
+Mentenimiento
+Bajada de la app (Obsolecencia programada)
+
+MapRoute con Sprints definidos (3 Semanas)
