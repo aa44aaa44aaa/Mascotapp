@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'dart:async';
-import 'pet_profile.dart';
+import '../pets/pet_profile.dart';
 import 'package:timeago/timeago.dart' as timeago;
 // Asegúrate de agregar este paquete
 

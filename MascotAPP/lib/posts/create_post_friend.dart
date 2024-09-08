@@ -38,15 +38,14 @@ class _CreatePostFriendScreenState extends State<CreatePostFriendScreen> {
             toolbarTitle: 'Recortar Imagen',
             toolbarColor: const Color.fromRGBO(130, 34, 255, 1),
             toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.ratio4x5,
+            initAspectRatio: CropAspectRatioPreset.ratio5x4,
             lockAspectRatio: true,
             aspectRatioPresets: [
-              CropAspectRatioPreset.ratio4x5,
+              //CropAspectRatioPreset.ratio4x5,
               CropAspectRatioPreset.ratio5x4,
               CropAspectRatioPreset.ratio16x9,
               CropAspectRatioPreset.square,
             ],
-
           ),
           IOSUiSettings(
             minimumAspectRatio: 1.0,
@@ -174,16 +173,19 @@ class _CreatePostFriendScreenState extends State<CreatePostFriendScreen> {
                         aspectRatio: 16 / 9,
                         child: Container(
                           color: Colors.grey[200],
-                          child: Icon(Icons.camera_alt, size: 50, color: Colors.grey[700]),
+                          child: Icon(Icons.camera_alt,
+                              size: 50, color: Colors.grey[700]),
                         ),
                       ),
               ),
               const SizedBox(height: 16.0),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Texto de la publicación'),
+                decoration:
+                    const InputDecoration(labelText: 'Texto de la publicación'),
                 onSaved: (value) => text = value,
                 validator: (value) {
-                  if (value!.isEmpty) return 'Ingrese un texto para la publicación';
+                  if (value!.isEmpty)
+                    return 'Ingrese un texto para la publicación';
                   return null;
                 },
               ),

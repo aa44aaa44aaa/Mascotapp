@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'minigame/flappy_bird_game.dart';
-import 'minigame/memory_game.dart';
+import '../minigames-private/flappy_bird_game.dart';
+import '../minigames-private/memory_game.dart';
 
 class MiniGamesScreen extends StatelessWidget {
   const MiniGamesScreen({super.key});

@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Importar FirebaseAuth
-import 'create_post_friend.dart';
-import 'user_profile.dart';
-import 'single_post_screen.dart';
+import '../posts/create_post_friend.dart';
+import '../user/user_profile.dart';
+import '../posts/single_post_screen.dart';
 
 class PetProfileScreen extends StatefulWidget {
   final String petId;

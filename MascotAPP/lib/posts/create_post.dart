@@ -8,7 +8,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import 'package:image/image.dart' as img;
-import 'home_screen.dart';
+import '../screens/home_screen.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -38,10 +38,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             toolbarTitle: 'Recortar Imagen',
             toolbarColor: const Color.fromRGBO(130, 34, 255, 1),
             toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.ratio4x5,
+            initAspectRatio: CropAspectRatioPreset.ratio5x4,
             lockAspectRatio: true,
             aspectRatioPresets: [
-              CropAspectRatioPreset.ratio4x5,
+              //CropAspectRatioPreset.ratio4x5,
               CropAspectRatioPreset.ratio5x4,
               CropAspectRatioPreset.ratio16x9,
               CropAspectRatioPreset.square,
@@ -58,7 +58,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         if (image != null) {
           int quality = 100;
           List<int> compressedBytes = img.encodeJpg(image, quality: quality);
-          while (compressedBytes.length > 1 * 1024 * 1024) { // 1MB
+          while (compressedBytes.length > 1 * 1024 * 1024) {
+            // 1MB
             quality -= 5;
             compressedBytes = img.encodeJpg(image, quality: quality);
           }
@@ -81,7 +82,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         User? user = _auth.currentUser;
         if (user == null || petId == null) return;
 
-        DocumentSnapshot petDoc = await _firestore.collection('pets').doc(petId).get();
+        DocumentSnapshot petDoc =
+            await _firestore.collection('pets').doc(petId).get();
         if (!petDoc.exists) return;
 
         String? imageUrl;
@@ -166,7 +168,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   }
                   User? user = snapshot.data;
                   return StreamBuilder<QuerySnapshot>(
-                    stream: _firestore.collection('pets').where('owner', isEqualTo: user?.uid).snapshots(),
+                    stream: _firestore
+                        .collection('pets')
+                        .where('owner', isEqualTo: user?.uid)
+                        .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return const CircularProgressIndicator();
@@ -214,17 +219,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                     aspectRatio: 16 / 9,
                                     child: Container(
                                       color: Colors.grey[200],
-                                      child: Icon(Icons.camera_alt, size: 50, color: Colors.grey[700]),
+                                      child: Icon(Icons.camera_alt,
+                                          size: 50, color: Colors.grey[700]),
                                     ),
                                   ),
                           ),
                           const SizedBox(height: 16.0),
                           DropdownButtonFormField<String>(
-                            decoration: const InputDecoration(labelText: 'Seleccionar Mascota'),
+                            decoration: const InputDecoration(
+                                labelText: 'Seleccionar Mascota'),
                             items: pets.map((DocumentSnapshot document) {
-                              Map<String, dynamic> petData = document.data()! as Map<String, dynamic>;
-                              String? estado = petData.containsKey('estado') ? petData['estado'] : null;
-                              bool isVerified = petData.containsKey('verified') ? (petData['verified'] ?? false) : false;
+                              Map<String, dynamic> petData =
+                                  document.data()! as Map<String, dynamic>;
+                              String? estado = petData.containsKey('estado')
+                                  ? petData['estado']
+                                  : null;
+                              bool isVerified = petData.containsKey('verified')
+                                  ? (petData['verified'] ?? false)
+                                  : false;
                               IconData? icon;
                               Color? iconColor;
 
@@ -250,21 +262,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                 child: Row(
                                   children: [
                                     CircleAvatar(
-                                      backgroundImage: CachedNetworkImageProvider(petData['petImageUrl']),
+                                      backgroundImage:
+                                          CachedNetworkImageProvider(
+                                              petData['petImageUrl']),
                                       radius: 20,
                                     ),
-                  
                                     const SizedBox(width: 8.0),
                                     Text(petData['petName']),
                                     if (isVerified) ...[
                                       const SizedBox(width: 5),
-                                      const Icon(Icons.verified, color: Colors.blue, size: 20),
+                                      const Icon(Icons.verified,
+                                          color: Colors.blue, size: 20),
                                     ],
                                     if (icon != null) ...[
                                       const SizedBox(width: 5),
                                       Icon(icon, color: iconColor, size: 24),
                                     ],
-                                    
                                   ],
                                 ),
                               );
@@ -283,10 +296,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           ),
                           const SizedBox(height: 16.0),
                           TextFormField(
-                            decoration: const InputDecoration(labelText: 'Texto de la publicación'),
+                            decoration: const InputDecoration(
+                                labelText: 'Texto de la publicación'),
                             onSaved: (value) => text = value,
                             validator: (value) {
-                              if (value!.isEmpty) return 'Ingrese un texto para la publicación';
+                              if (value!.isEmpty)
+                                return 'Ingrese un texto para la publicación';
                               return null;
                             },
                           ),

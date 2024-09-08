@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'pet_profile.dart';
+import '../pets/pet_profile.dart';
 
 class AdoptarScreen extends StatelessWidget {
   const AdoptarScreen({super.key});
@@ -126,24 +126,6 @@ class AdoptarScreen extends StatelessWidget {
             },
           );
         },
-      ),
-    );
-  }
-}
-
-class PetProfileScreen extends StatelessWidget {
-  final String petId;
-
-  const PetProfileScreen({super.key, required this.petId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Perfil de la Mascota'),
-      ),
-      body: Center(
-        child: Text('Perfil de la mascota con ID: $petId'),
       ),
     );
   }

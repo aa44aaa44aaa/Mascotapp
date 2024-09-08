@@ -1,17 +1,19 @@
-//import 'package:Mascotapp/mini_games_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'user_profile.dart';
-import 'pets_screen.dart';
-import 'create_post.dart';
+
+import '../applications/applyrefugioscreen.dart';
+import '../login/login_screen.dart';
+import '../user/user_profile.dart';
+import '../user/user_edit.dart';
+import '../posts/create_post.dart';
 import 'notifications_screen.dart';
+import 'pets_screen.dart';
 import 'feed_screen.dart';
-import 'pending_posts_screen.dart';
-import 'login_screen.dart';
-import 'user_edit.dart';
 import 'adoptar_screen.dart';
+import 'pending_posts_screen.dart';
+//import 'package:Mascotapp/mini_games_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -320,6 +322,18 @@ class HomeScreenState extends State<HomeScreen> {
                 fontSize: 24,
               ),
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.pets),
+            title: const Text('Ser refugio!'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ApplyRefugioScreen(),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.settings),

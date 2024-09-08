@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'user_edit.dart'; // Importar la pantalla de edición de perfil
-import 'pet_profile.dart'; // Importar la pantalla del perfil de la mascota
+import '../pets/pet_profile.dart'; // Importar la pantalla del perfil de la mascota
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;

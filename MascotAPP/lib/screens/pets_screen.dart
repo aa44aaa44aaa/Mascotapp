@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'pet_register.dart';
-import 'edit_pet.dart';
-import 'pet_profile.dart';
+import '../pets/pet_register.dart';
+import '../pets/edit_pet.dart';
+import '../pets/pet_profile.dart';
 
 class PetsScreen extends StatefulWidget {
   const PetsScreen({super.key});

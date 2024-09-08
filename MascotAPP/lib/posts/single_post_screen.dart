@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'user_profile.dart';
+import '../user/user_profile.dart';
 
 class SinglePostScreen extends StatefulWidget {
   final String postId;
