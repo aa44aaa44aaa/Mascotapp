@@ -16,8 +16,9 @@ Mascotapp es una aplicación móvil desarrollada en Flutter que tiene como objet
 ## Funcionalidades
 
 - **Perfil de usuario:** Crea y personaliza tu perfil.
-- **Adopciones:** Visualiza mascotas en adopción y postula para darles un hogar.
-- **Compartir momentos:** Publica fotos y videos de tus mascotas.
+- **Perfil de mascota:** Crea y personaliza el perfil de tu ser querido.
+- **Comparte momentos:** Publica fotos de tus mascotas.
+- **Adopciones:** Visualiza mascotas en adopción y postula para darles un hogar. (El refugio recibe los datos de contacto)
 - **Refugios:** Los refugios pueden listar animales en adopción y gestionar perfiles de las mascotas.
 
 ## Tecnologías utilizadas
