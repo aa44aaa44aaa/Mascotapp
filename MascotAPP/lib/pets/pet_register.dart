@@ -27,13 +27,22 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
   bool _photoError = false;
   double _opacity = 1.0;
 
-  String? petName, petType, petBreed, petStatus = 'nada', lostLocation;
+  String? petName,
+      petType,
+      petBreed,
+      petStatus = 'nada',
+      lostLocation,
+      location;
   DateTime? birthDate;
   int? ageYears;
   int? ageMonths;
   File? _petImage;
   bool _knowsExactDate = true;
   String? userRole;
+
+  // Nuevas variables booleanas para "Esterilizado" y "Vacunado"
+  bool _isSterilized = false;
+  bool _isVaccinated = false;
 
   final picker = ImagePicker();
   List<String> animalTypes = [];
@@ -145,7 +154,7 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
               'Debe proporcionar una fecha de nacimiento o una edad válida.');
         }
 
-        // Registrar mascota con la ubicación proporcionada como texto si está "perdido"
+        // Registrar mascota con todos los datos incluyendo ubicación, esterilizado y vacunado
         await _firestore.collection('pets').add({
           'owner': user!.uid,
           'petName': petName,
@@ -153,10 +162,12 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
           'petBreed': petBreed,
           'birthDate': birthDateToSave,
           'petImageUrl': imageUrl,
-          'petStatus': petStatus,
+          'estado': petStatus,
           'verified': false,
-          if (petStatus == 'perdido' && lostLocation != null)
-            'lostLocation': lostLocation, // Almacenar ubicación como texto
+          if (petStatus == 'perdido' || petStatus == 'adopcion')
+            'location': location,
+          if (petStatus == 'adopcion') 'esterilizado': _isSterilized,
+          if (petStatus == 'adopcion') 'vacunado': _isVaccinated,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -372,20 +383,50 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
             onSaved: (value) => petStatus = value,
           ),
         ),
-        if (petStatus == 'perdido')
+        if (petStatus == 'perdido' || petStatus == 'adopcion')
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextFormField(
-              decoration:
-                  const InputDecoration(labelText: 'Ubicación donde se perdió'),
-              onSaved: (value) => lostLocation = value,
+              decoration: const InputDecoration(
+                  labelText: 'Ubicación (Comuna, Ciudad)'),
+              onSaved: (value) => location = value,
               validator: (value) {
-                if (value!.isEmpty && petStatus == 'perdido') {
+                if (value!.isEmpty &&
+                    (petStatus == 'perdido' || petStatus == 'adopcion')) {
                   return 'Por favor ingresa la ubicación';
                 }
                 return null;
               },
             ),
+          ),
+        if (petStatus == 'adopcion')
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: CheckboxListTile(
+                  title: const Text("¿Está esterilizado?"),
+                  value: _isSterilized,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      _isSterilized = newValue!;
+                    });
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: CheckboxListTile(
+                  title: const Text("¿Está vacunado?"),
+                  value: _isVaccinated,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      _isVaccinated = newValue!;
+                    });
+                  },
+                ),
+              ),
+            ],
           ),
         const SizedBox(height: 16.0),
         Padding(

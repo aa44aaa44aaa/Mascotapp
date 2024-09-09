@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../applications/applyrefugioscreen.dart';
+import '../applications/solicitudes_adopt_screen.dart';
 import '../login/login_screen.dart';
 import '../user/user_profile.dart';
 import '../user/user_edit.dart';
@@ -32,6 +33,7 @@ class HomeScreenState extends State<HomeScreen> {
   int _notificationCount = 0;
   int _pendingPostCount = 0;
   bool _isPetOwner = false;
+  int _adoptionRequestCount = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -40,6 +42,24 @@ class HomeScreenState extends State<HomeScreen> {
     _loadUserProfile();
     _loadNotifications();
     _checkIfPetOwner();
+    _loadAdoptionRequests(); // Cargar las solicitudes de adopción no revisadas
+  }
+
+  Future<void> _loadAdoptionRequests() async {
+    User? user = _auth.currentUser;
+    if (user != null && userRole == 'refugio') {
+      // Cargar solicitudes de adopción no revisadas del refugio
+      QuerySnapshot requests = await _firestore
+          .collection('ApplyAdopt')
+          .where('idRefugio', isEqualTo: user.uid)
+          .where('revisado', isEqualTo: false)
+          .get();
+      if (mounted) {
+        setState(() {
+          _adoptionRequestCount = requests.docs.length;
+        });
+      }
+    }
   }
 
   Future<void> _loadUserProfile() async {
@@ -153,6 +173,45 @@ class HomeScreenState extends State<HomeScreen> {
         title: const Text('MascotAPP'),
         automaticallyImplyLeading: false,
         actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.assignment),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdoptionRequestsScreen(),
+                    ),
+                  ).then((value) => _loadAdoptionRequests());
+                },
+              ),
+              if (_adoptionRequestCount > 0)
+                Positioned(
+                  right: 11,
+                  top: 11,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 14,
+                      minHeight: 14,
+                    ),
+                    child: Text(
+                      '$_adoptionRequestCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
           Stack(
             children: [
               IconButton(

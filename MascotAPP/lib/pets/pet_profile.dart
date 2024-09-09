@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart'; // Importar FirebaseAuth
 import '../posts/create_post_friend.dart';
 import '../user/user_profile.dart';
 import '../posts/single_post_screen.dart';
+import '../applications/applyadoptscreen.dart';
 
 class PetProfileScreen extends StatefulWidget {
   final String petId;
@@ -130,263 +131,255 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                 break;
               case 'adopcion':
                 borderColor = Colors.brown;
-                icon = Icons.pets;
+                icon = Icons.volunteer_activism;
                 message = 'Estoy en adopción!';
                 break;
             }
           }
 
           return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: textoestado.isNotEmpty
-                            ? () => _showMessage(textoestado)
-                            : null,
-                        child: CircleAvatar(
-                          radius: 50,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (message != null && icon != null)
+                    Column(
+                      children: [
+                        //const SizedBox(height: 5),
+                        Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                message!,
+                                style: TextStyle(
+                                  color: borderColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(icon, color: borderColor),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  //const SizedBox(height: 8),
+                  // Imagen y nombre de la mascota
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
                           backgroundImage: pet['petImageUrl'] != null
                               ? CachedNetworkImageProvider(pet['petImageUrl'])
                               : const AssetImage('assets/default_pet.png')
                                   as ImageProvider,
                           child: Container(
                             decoration: BoxDecoration(
-                              border: Border.all(color: borderColor, width: 4),
-                              borderRadius: BorderRadius.circular(50),
+                              border: Border.all(color: borderColor, width: 6),
+                              borderRadius: BorderRadius.circular(60),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (message != null && icon != null)
-                  Column(
-                    children: [
-                      const SizedBox(height: 5),
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(icon, color: borderColor),
-                            const SizedBox(width: 4),
-                            Text(
-                              message,
-                              style: TextStyle(
-                                color: borderColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(icon, color: borderColor),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        pet['petName'],
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      if (isVerified) ...[
-                        const SizedBox(width: 8),
-                        const Tooltip(
-                          message: 'Mascota Verificada',
-                          child: Icon(Icons.verified,
-                              color: Colors.blue, size: 24),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                Center(
-                  child: Text(
-                    '${pet['petType']} ${pet['petBreed']}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ),
-                Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.cake, size: 24),
-                          Text(
-                            ' $ageString',
-                            style: const TextStyle(fontSize: 18),
+
+                  //const SizedBox(height: 8),
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          pet['petName'],
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        if (isVerified) ...[
+                          const SizedBox(width: 8),
+                          const Tooltip(
+                            message: 'Mascota Verificada',
+                            child: Icon(Icons.verified,
+                                color: Colors.blue, size: 24),
                           ),
                         ],
-                      ),
-                      Text(
-                        '($formattedBirthDate)',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(ownerId)
-                      .get(),
-                  builder: (context, userSnapshot) {
-                    if (!userSnapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    var owner =
-                        userSnapshot.data!.data() as Map<String, dynamic>;
-                    var ownerProfileImageUrl = owner['profileImageUrl'];
-                    var ownerRole = owner['rol']; // Obtén el rol del dueño
-
-                    return Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  UserProfileScreen(userId: ownerId),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircleAvatar(
-                              backgroundImage: ownerProfileImageUrl != null
-                                  ? CachedNetworkImageProvider(
-                                      ownerProfileImageUrl)
-                                  : const AssetImage(
-                                          'assets/default_profile.png')
-                                      as ImageProvider,
-                            ),
-                            Text(
-                              ' @${owner['username']}',
-                              style: const TextStyle(fontSize: 18),
-                            ),
-                            if (ownerRole ==
-                                'refugio') // Mostrar patita si el rol es refugio
-                              const Icon(Icons.pets,
-                                  color: Colors.brown, size: 18),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    'Publicaciones',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Center(
+                    child: Text(
+                      '${pet['petType']} ${pet['petBreed']}',
+                      style: const TextStyle(fontSize: 18),
+                    ),
                   ),
-                ),
-                FutureBuilder<QuerySnapshot>(
-                  future: FirebaseFirestore.instance
-                      .collection('posts')
-                      .where('petId', isEqualTo: widget.petId)
-                      .get(),
-                  builder: (context, postSnapshot) {
-                    if (!postSnapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                  const SizedBox(height: 8),
+                  FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(ownerId)
+                        .get(),
+                    builder: (context, userSnapshot) {
+                      if (!userSnapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                    var posts = postSnapshot.data!.docs;
+                      var owner =
+                          userSnapshot.data!.data() as Map<String, dynamic>;
+                      var ownerProfileImageUrl = owner['profileImageUrl'];
+                      var ownerRole = owner['rol'];
 
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 4,
-                        crossAxisSpacing: 4,
-                      ),
-                      itemCount: posts.length,
-                      itemBuilder: (context, index) {
-                        var post = posts[index].data() as Map<String, dynamic>;
-
-                        return GestureDetector(
+                      return Center(
+                        child: GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    SinglePostScreen(postId: posts[index].id),
+                                    UserProfileScreen(userId: ownerId),
                               ),
                             );
                           },
-                          child: CachedNetworkImage(
-                            imageUrl: post['postImageUrl'],
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                                child: CircularProgressIndicator()),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                backgroundImage: ownerProfileImageUrl != null
+                                    ? CachedNetworkImageProvider(
+                                        ownerProfileImageUrl)
+                                    : const AssetImage(
+                                            'assets/default_profile.png')
+                                        as ImageProvider,
+                              ),
+                              Text(
+                                ' @${owner['username']}',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                              if (ownerRole == 'refugio') ...[
+                                const SizedBox(width: 8),
+                                const Icon(Icons.pets,
+                                    color: Colors.brown, size: 18),
+                              ],
+                            ],
                           ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  // Datos en fila: vacunado, esterilizado, edad
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      if (estado == 'adopcion') ...[
+                        Column(
+                          children: [
+                            const Icon(Icons.vaccines,
+                                color: Colors.green, size: 32),
+                            Text(
+                                'Vacunado: ${pet['vacunado'] == true ? 'Sí' : 'No'}'),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            const Icon(Icons.local_hospital,
+                                color: Colors.blue, size: 32),
+                            Text(
+                                'Esterilizado: ${pet['esterilizado'] == true ? 'Sí' : 'No'}'),
+                          ],
+                        ),
+                      ],
+                      // Esta columna se mostrará siempre
+                      Column(
+                        children: [
+                          const Icon(Icons.cake, color: Colors.red, size: 32),
+                          Text('Edad: $ageString'),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (estado == 'adopcion')
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ApplyAdoptScreen(petId: widget.petId),
+                            ),
+                          );
+                        },
+                        child: const Text('Quiero Adoptar'),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'Publicaciones',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  FutureBuilder<QuerySnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('posts')
+                        .where('petId', isEqualTo: widget.petId)
+                        .get(),
+                    builder: (context, postSnapshot) {
+                      if (!postSnapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      var posts = postSnapshot.data!.docs;
+
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 4,
+                          crossAxisSpacing: 4,
+                        ),
+                        itemCount: posts.length,
+                        itemBuilder: (context, index) {
+                          var post =
+                              posts[index].data() as Map<String, dynamic>;
+
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      SinglePostScreen(postId: posts[index].id),
+                                ),
+                              );
+                            },
+                            child: CachedNetworkImage(
+                              imageUrl: post['postImageUrl'],
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator()),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
-      floatingActionButton: currentUser != null
-          ? FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection('pets')
-                  .doc(widget.petId)
-                  .get(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Container();
-                }
-
-                var pet = snapshot.data!.data() as Map<String, dynamic>;
-                var ownerId = pet['owner'];
-                var currentUserId =
-                    currentUser!.uid; // Usar el ID del usuario actual
-
-                if (currentUserId == ownerId) {
-                  return Container();
-                }
-
-                return FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CreatePostFriendScreen(petId: widget.petId),
-                      ),
-                    );
-                  },
-                  child: const Icon(Icons.camera_alt),
-                );
-              },
-            )
-          : Container(),
     );
   }
 }

@@ -19,12 +19,14 @@ class _EditPetScreenState extends State<EditPetScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _formKey = GlobalKey<FormState>();
 
-  String? petName, petType, petBreed;
+  String? petName, petType, petBreed, petStatus, location;
   DateTime? birthDate;
   int? ageYears;
   int? ageMonths;
   bool _knowsExactDate = true;
   File? _petImage;
+  bool _isSterilized = false;
+  bool _isVaccinated = false;
   final picker = ImagePicker();
   Map<String, dynamic>? petData;
 
@@ -45,8 +47,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
       petName = petData!['petName'];
       petType = petData!['petType'];
       petBreed = petData!['petBreed'];
+      petStatus = petData!['estado'];
       birthDate = (petData!['birthDate'] as Timestamp).toDate();
       _knowsExactDate = true; // Asume que inicialmente conoce la fecha exacta
+      location = petData!['location'] ?? '';
+      _isSterilized = petData!['esterilizado'] ?? false;
+      _isVaccinated = petData!['vacunado'] ?? false;
     });
   }
 
@@ -73,30 +79,39 @@ class _EditPetScreenState extends State<EditPetScreen> {
         if (_knowsExactDate && birthDate != null) {
           birthDateToSave = birthDate!;
         } else if (ageYears != null && ageMonths != null) {
-          birthDateToSave = DateTime.now().subtract(Duration(days: (ageYears! * 365) + (ageMonths! * 30)));
+          birthDateToSave = DateTime.now()
+              .subtract(Duration(days: (ageYears! * 365) + (ageMonths! * 30)));
         } else {
-          throw Exception('Debe proporcionar una fecha de nacimiento o una edad válida.');
+          throw Exception(
+              'Debe proporcionar una fecha de nacimiento o una edad válida.');
         }
 
+        // Actualización de la mascota con los nuevos campos
         await _firestore.collection('pets').doc(widget.petId).update({
           'petName': petName,
           'petType': petType,
           'petBreed': petBreed,
           'birthDate': birthDateToSave,
           'petImageUrl': imageUrl,
+          'estado': petStatus,
+          if (petStatus == 'perdido' || petStatus == 'adopcion')
+            'location': location,
+          if (petStatus == 'adopcion') 'esterilizado': _isSterilized,
+          if (petStatus == 'adopcion') 'vacunado': _isVaccinated,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: AwesomeSnackbarContent(
-                title: 'Perfecto!',
-                message: 'Se actualizó correctamente la información de su mascota.',
-                contentType: ContentType.success,
-              ),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
+            content: AwesomeSnackbarContent(
+              title: 'Perfecto!',
+              message:
+                  'Se actualizó correctamente la información de su mascota.',
+              contentType: ContentType.success,
             ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
         );
 
         Navigator.of(context).pop();
@@ -157,15 +172,15 @@ class _EditPetScreenState extends State<EditPetScreen> {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: AwesomeSnackbarContent(
-              title: 'Error',
-              message: 'Error: $e',
-              contentType: ContentType.failure,
-            ),
-            backgroundColor: Colors.transparent,
-            behavior: SnackBarBehavior.floating,
-            elevation: 0,
+          content: AwesomeSnackbarContent(
+            title: 'Error',
+            message: 'Error: $e',
+            contentType: ContentType.failure,
           ),
+          backgroundColor: Colors.transparent,
+          behavior: SnackBarBehavior.floating,
+          elevation: 0,
+        ),
       );
     }
   }
@@ -242,6 +257,28 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 },
               ),
               const SizedBox(height: 16.0),
+              // Selector de estado de la mascota (DropdownButtonFormField)
+              DropdownButtonFormField<String>(
+                value: petStatus,
+                decoration:
+                    const InputDecoration(labelText: 'Estado de la mascota'),
+                items: [
+                  DropdownMenuItem(value: 'nada', child: const Text('Ninguno')),
+                  DropdownMenuItem(
+                      value: 'adopcion', child: const Text('En Adopción')),
+                  DropdownMenuItem(
+                      value: 'perdido', child: const Text('Perdido')),
+                  DropdownMenuItem(
+                      value: 'enmemoria', child: const Text('En Memoria')),
+                ],
+                onChanged: (String? newValue) {
+                  setState(() {
+                    petStatus = newValue;
+                  });
+                },
+                onSaved: (value) => petStatus = value,
+              ),
+              const SizedBox(height: 16.0),
               Row(
                 children: [
                   Expanded(
@@ -272,7 +309,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
               ),
               if (_knowsExactDate)
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Fecha de nacimiento'),
+                  decoration:
+                      const InputDecoration(labelText: 'Fecha de nacimiento'),
                   readOnly: true,
                   onTap: () async {
                     FocusScope.of(context).requestFocus(FocusNode());
@@ -289,7 +327,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     }
                   },
                   validator: (value) {
-                    if (birthDate == null) return 'Ingrese la fecha de nacimiento';
+                    if (birthDate == null)
+                      return 'Ingrese la fecha de nacimiento';
                     return null;
                   },
                   controller: TextEditingController(
@@ -323,6 +362,45 @@ class _EditPetScreenState extends State<EditPetScreen> {
                           return null;
                         },
                       ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 16.0),
+              // Campo de ubicación si la mascota está en adopción o perdida
+              if (petStatus == 'perdido' || petStatus == 'adopcion')
+                TextFormField(
+                  initialValue: location,
+                  decoration: const InputDecoration(
+                      labelText: 'Ubicación (Comuna, Ciudad)'),
+                  onSaved: (value) => location = value,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor ingresa la ubicación';
+                    }
+                    return null;
+                  },
+                ),
+              // Checkboxes de esterilizado y vacunado si la mascota está en adopción
+              if (petStatus == 'adopcion')
+                Column(
+                  children: [
+                    CheckboxListTile(
+                      title: const Text('¿Está esterilizado?'),
+                      value: _isSterilized,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isSterilized = value!;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: const Text('¿Está vacunado?'),
+                      value: _isVaccinated,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isVaccinated = value!;
+                        });
+                      },
                     ),
                   ],
                 ),
