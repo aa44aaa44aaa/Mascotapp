@@ -113,6 +113,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 if (userRole ==
                     'refugio') // Mostrar la patita si el rol es "refugio"
                   const Icon(Icons.pets, color: Colors.orange, size: 24),
+                if (userRole ==
+                    'admin') // Mostrar la patita si el rol es "refugio"
+                  const Icon(Icons.verified_user, color: Colors.red, size: 24),
               ],
             ),
             Text(

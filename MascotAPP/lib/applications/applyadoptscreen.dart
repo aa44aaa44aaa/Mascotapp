@@ -16,7 +16,7 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _rutController = TextEditingController();
   final TextEditingController _phoneController =
-      TextEditingController(text: "+56 ");
+      TextEditingController(text: "+56");
 
   String nombreComp = '';
   String rut = '';

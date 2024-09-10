@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../notifications/notification_service.dart';
 
 class ApplyRefugioScreen extends StatefulWidget {
   const ApplyRefugioScreen({super.key});
@@ -71,7 +72,7 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
         'nomRefugio': _nomRefugioController.text,
         'dirRefugio': _dirRefugioController.text,
         'nomRepresentante': _nomRepresentanteController.text,
-        'rutRepresentante': _rutRepresentanteController.text,
+        'rutRepresentante': _formatRut(_rutRepresentanteController.text),
         'telRepresentante': _telRepresentanteController.text,
         'cantAnimales': int.parse(_cantAnimalesController.text),
         'fecsolicitud': DateTime.now(),
@@ -82,10 +83,61 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Solicitud enviada con éxito!')),
       );
+
+      // Enviar notificación personalizada
+      final NotificationService notificationService = NotificationService();
+      await notificationService.sendCustomNotification(
+        'Recibimos tu solicitud para ser refugio! El equipo de MascotAPP está revisandola.',
+        '0xe18d', // Código del icono de pets
+        _uid!,
+      );
+
       setState(() {
         _hasSubmitted = true;
       });
     }
+  }
+
+  // Formatear RUT
+  String _formatRut(String text) {
+    text = text.replaceAll('.', '').replaceAll('-', '');
+    if (text.length > 1) {
+      String rutBody = text.substring(0, text.length - 1);
+      String dv = text.substring(text.length - 1);
+      rutBody = rutBody.replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.');
+      return '$rutBody-$dv';
+    }
+    return text;
+  }
+
+  // Validar RUT
+  bool _validarRut(String rut) {
+    rut = rut.toUpperCase().replaceAll('.', '').replaceAll('-', '');
+    if (rut.length < 9) return false;
+
+    String aux = rut.substring(0, rut.length - 1);
+    String dv = rut.substring(rut.length - 1);
+
+    List<int> reversedRut = aux.split('').reversed.map(int.parse).toList();
+    List<int> factors = [2, 3, 4, 5, 6, 7];
+
+    int sum = 0;
+    for (int i = 0; i < reversedRut.length; i++) {
+      sum += reversedRut[i] * factors[i % factors.length];
+    }
+
+    int res = 11 - (sum % 11);
+
+    if (res == 11) return dv == '0';
+    if (res == 10) return dv == 'K';
+    return res.toString() == dv;
+  }
+
+  // Validar número chileno
+  bool _validarNumeroChileno(String numero) {
+    final regex = RegExp(r'^\+569\d{8}$'); // Formato "+569XXXXXXXX"
+    return regex.hasMatch(numero);
   }
 
   @override
@@ -187,6 +239,9 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
               if (value == null || value.isEmpty) {
                 return 'Este campo es obligatorio';
               }
+              if (!_validarRut(value)) {
+                return 'RUT inválido';
+              }
               return null;
             },
           ),
@@ -198,6 +253,9 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Este campo es obligatorio';
+              }
+              if (!_validarNumeroChileno(value)) {
+                return 'Teléfono inválido, debe ser en formato +569XXXXXXXX';
               }
               return null;
             },

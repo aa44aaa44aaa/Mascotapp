@@ -4,9 +4,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart'; // Importa url_launcher para abrir WhatsApp
+import '../notifications/notification_service.dart'; // Importa el servicio de notificaciones
 
-class AdoptionRequestsScreen extends StatelessWidget {
+class AdoptionRequestsScreen extends StatefulWidget {
   const AdoptionRequestsScreen({Key? key}) : super(key: key);
+
+  @override
+  _AdoptionRequestsScreenState createState() => _AdoptionRequestsScreenState();
+}
+
+class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
+  bool _isLoading = false; // Indicador de carga
 
   Future<List<DocumentSnapshot>> _fetchAdoptionRequests() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -47,127 +55,180 @@ class AdoptionRequestsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _sendReviewNotification(
+      String idSolicitante, String petName) async {
+    try {
+      // Enviar notificación personalizada
+      final NotificationService notificationService = NotificationService();
+      await notificationService.sendCustomNotification(
+        'Tu solicitud de adopción para $petName ha sido revisada, espera a ser contactado.',
+        '0xe3a3',
+        idSolicitante,
+      );
+    } catch (e) {
+      print("Error sending notification: $e");
+    }
+  }
+
+  Future<void> _markAsReviewed(
+      DocumentSnapshot request, String idSolicitante, String petName) async {
+    setState(() {
+      _isLoading = true; // Mostrar el indicador de carga
+    });
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('ApplyAdopt')
+          .doc(request.id)
+          .update({'revisado': true});
+
+      // Enviar notificación al usuario
+      await _sendReviewNotification(idSolicitante, petName);
+    } catch (e) {
+      print("Error marking as reviewed: $e");
+    } finally {
+      setState(() {
+        _isLoading = false; // Ocultar el indicador de carga
+      });
+
+      Navigator.of(context).pop(); // Cerrar el diálogo
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Solicitudes de Adopción'),
       ),
-      body: FutureBuilder<List<DocumentSnapshot>>(
-        future: _fetchAdoptionRequests(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Stack(
+        children: [
+          FutureBuilder<List<DocumentSnapshot>>(
+            future: _fetchAdoptionRequests(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text('No hay solicitudes de adopción'),
-            );
-          }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Text('No hay solicitudes de adopción'),
+                );
+              }
 
-          var requests = snapshot.data!;
+              var requests = snapshot.data!;
 
-          return ListView.builder(
-            itemCount: requests.length,
-            itemBuilder: (context, index) {
-              var request = requests[index];
-              var data = request.data() as Map<String, dynamic>;
-              var timeAgoString = timeago.format(data['fecsolicitud'].toDate());
+              return ListView.builder(
+                itemCount: requests.length,
+                itemBuilder: (context, index) {
+                  var request = requests[index];
+                  var data = request.data() as Map<String, dynamic>;
+                  var timeAgoString =
+                      timeago.format(data['fecsolicitud'].toDate());
 
-              return FutureBuilder<Map<String, dynamic>?>(
-                future: _fetchPetData(data['idMascota']),
-                builder: (context, petSnapshot) {
-                  if (!petSnapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                  return FutureBuilder<Map<String, dynamic>?>(
+                    future: _fetchPetData(data['idMascota']),
+                    builder: (context, petSnapshot) {
+                      if (!petSnapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                  var petData = petSnapshot.data ?? {};
-                  var petImageUrl = petData['petImageUrl'] as String?;
-                  var petName = petData['petName'] as String? ?? 'Desconocido';
+                      var petData = petSnapshot.data ?? {};
+                      var petImageUrl = petData['petImageUrl'] as String?;
+                      var petName =
+                          petData['petName'] as String? ?? 'Desconocido';
 
-                  return Card(
-                    margin: const EdgeInsets.all(8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: petImageUrl != null
-                            ? CachedNetworkImageProvider(petImageUrl)
-                            : const AssetImage('assets/default_pet.png')
-                                as ImageProvider,
-                        radius: 30,
-                        onBackgroundImageError: (_, __) =>
-                            const Icon(Icons.pets),
-                      ),
-                      title: Text(data['nombreComp'] ?? 'Solicitante'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Mascota: $petName'),
-                          Text('Hace: $timeAgoString'),
-                        ],
-                      ),
-                      trailing: data['revisado']
-                          ? const Icon(Icons.check, color: Colors.green)
-                          : const Icon(Icons.info, color: Colors.orange),
-                      onTap: () {
-                        // Acción al seleccionar una solicitud
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Detalles de Solicitud'),
-                              content: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text('Nombre: ${data['nombreComp']}'),
-                                  Text('RUT: ${data['rut']}'),
-                                  Text('Teléfono: ${data['numTel']}'),
-                                  Text('Dirección: ${data['dir']}'),
-                                  const SizedBox(height: 10),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      FirebaseFirestore.instance
-                                          .collection('ApplyAdopt')
-                                          .doc(request.id)
-                                          .update({'revisado': true});
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text('Marcar como revisado'),
+                      return Card(
+                        margin: const EdgeInsets.all(8),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: petImageUrl != null
+                                ? CachedNetworkImageProvider(petImageUrl)
+                                : const AssetImage('assets/default_pet.png')
+                                    as ImageProvider,
+                            radius: 30,
+                            onBackgroundImageError: (_, __) =>
+                                const Icon(Icons.pets),
+                          ),
+                          title: Text(data['nombreComp'] ?? 'Solicitante'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Mascota: $petName'),
+                              Text('Hace: $timeAgoString'),
+                            ],
+                          ),
+                          trailing: data['revisado']
+                              ? const Icon(Icons.check, color: Colors.green)
+                              : const Icon(Icons.info, color: Colors.orange),
+                          onTap: () {
+                            // Acción al seleccionar una solicitud
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Detalles de Solicitud'),
+                                  content: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('Nombre: ${data['nombreComp']}'),
+                                      Text('RUT: ${data['rut']}'),
+                                      Text('Teléfono: ${data['numTel']}'),
+                                      Text('Dirección: ${data['dir']}'),
+                                      if (!data['revisado']) ...[
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            _markAsReviewed(
+                                              request,
+                                              data['idSolicitante'],
+                                              petName,
+                                            );
+                                          },
+                                          child: const Text(
+                                              'Marcar como revisado'),
+                                        ),
+                                        const SizedBox(height: 10),
+                                      ],
+                                      ElevatedButton.icon(
+                                        onPressed: () {
+                                          _launchWhatsApp(
+                                            data['numTel'],
+                                            'Hola ${data['nombreComp']}, te escribo por tu solicitud de adopción para la mascota $petName.',
+                                          );
+                                        },
+                                        icon: const Icon(Icons.phone),
+                                        label: const Text(
+                                            'Comunicarse al WhatsApp'),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 10),
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      _launchWhatsApp(
-                                        data['numTel'],
-                                        'Hola ${data['nombreComp']}, te escribo por tu solicitud de adopción para la mascota $petName.',
-                                      );
-                                    },
-                                    icon: const Icon(Icons.phone),
-                                    label:
-                                        const Text('Comunicarse al WhatsApp'),
-                                  ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('Cerrar'),
-                                ),
-                              ],
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Cerrar'),
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           },
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               );
             },
-          );
-        },
+          ),
+          if (_isLoading) // Mostrar el cargando cuando _isLoading es true
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
       ),
     );
   }

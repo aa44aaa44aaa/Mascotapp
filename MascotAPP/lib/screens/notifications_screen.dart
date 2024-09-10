@@ -47,11 +47,12 @@ class NotificationsScreen extends StatelessWidget {
 
           var notifications = snapshot.data!.docs;
 
-          // Filter and delete notifications older than two weeks
           notifications.forEach((doc) {
             var notificationData = doc.data() as Map<String, dynamic>;
             var timestamp = notificationData['timestamp'] as Timestamp;
-            if (timestamp.toDate().isBefore(DateTime.now().subtract(const Duration(days: 14)))) {
+            if (timestamp
+                .toDate()
+                .isBefore(DateTime.now().subtract(const Duration(days: 14)))) {
               _firestore.collection('notifications').doc(doc.id).delete();
             }
           });
@@ -59,12 +60,15 @@ class NotificationsScreen extends StatelessWidget {
           return ListView.builder(
             itemCount: notifications.length,
             itemBuilder: (context, index) {
-              var notificationData = notifications[index].data() as Map<String, dynamic>;
+              var notificationData =
+                  notifications[index].data() as Map<String, dynamic>;
               var timestamp = notificationData['timestamp'] as Timestamp;
 
-              // Mark the notification as read when it's displayed
               if (!notificationData['isRead']) {
-                _firestore.collection('notifications').doc(notifications[index].id).update({
+                _firestore
+                    .collection('notifications')
+                    .doc(notifications[index].id)
+                    .update({
                   'isRead': true,
                 });
               }
@@ -72,10 +76,10 @@ class NotificationsScreen extends StatelessWidget {
               return Dismissible(
                 key: Key(notifications[index].id),
                 onDismissed: (direction) {
-                  // Delete the notification from Firestore
-                  _firestore.collection('notifications').doc(notifications[index].id).delete();
-
-                  // Show a snackbar to confirm deletion
+                  _firestore
+                      .collection('notifications')
+                      .doc(notifications[index].id)
+                      .delete();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Notificación borrada')),
                   );
@@ -84,24 +88,22 @@ class NotificationsScreen extends StatelessWidget {
                   color: Colors.red,
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.only(left: 16.0),
-                  child: const Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
+                  child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 secondaryBackground: Container(
                   color: Colors.red,
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 16.0),
-                  child: const Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
+                  child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 child: FutureBuilder<DocumentSnapshot>(
-                  future: _firestore.collection('users').doc(notificationData['sender']).get(),
+                  future: _firestore
+                      .collection('users')
+                      .doc(notificationData['sender'])
+                      .get(),
                   builder: (context, userSnapshot) {
-                    if (userSnapshot.connectionState == ConnectionState.waiting) {
+                    if (userSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const ListTile(
                         title: Text('Loading...'),
                         subtitle: Text('Loading...'),
@@ -122,78 +124,107 @@ class NotificationsScreen extends StatelessWidget {
                       );
                     }
 
-                    var senderData = userSnapshot.data!.data() as Map<String, dynamic>;
+                    var senderData =
+                        userSnapshot.data!.data() as Map<String, dynamic>;
 
-                    return FutureBuilder<DocumentSnapshot>(
-                      future: _firestore.collection('posts').doc(notificationData['postId']).get(),
-                      builder: (context, postSnapshot) {
-                        if (postSnapshot.connectionState == ConnectionState.waiting) {
-                          return const ListTile(
-                            title: Text('Loading...'),
-                            subtitle: Text('Loading...'),
-                          );
-                        }
-
-                        if (postSnapshot.hasError) {
-                          return ListTile(
-                            title: const Text('Error loading post'),
-                            subtitle: Text('${postSnapshot.error}'),
-                          );
-                        }
-
-                        if (!postSnapshot.hasData || postSnapshot.data == null) {
-                          return const ListTile(
-                            title: Text('Unknown post'),
-                            subtitle: Text('Unable to load post information'),
-                          );
-                        }
-
-                        var postData = postSnapshot.data!.data() as Map<String, dynamic>;
-
-                        return ListTile(
-                          title: Text(notificationData['type'] == 'like'
-                              ? 'Ha dado like a tu post'
-                              : 'Ha comentado tu post'),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('@${senderData['username']}'),
-                              Text(timeago.format(timestamp.toDate(), locale: 'es')),
-                            ],
+                    if (notificationData['type'] == 'custom') {
+                      return ListTile(
+                        leading: Icon(
+                          IconData(
+                            int.parse(notificationData['icon']),
+                            fontFamily: 'MaterialIcons',
                           ),
-                          trailing: GestureDetector(
+                          size: 40,
+                        ),
+                        title: Text(notificationData['text']),
+                        subtitle: Text(
+                          timeago.format(timestamp.toDate(), locale: 'es'),
+                        ),
+                        onTap: () {
+                          // Puedes manejar una acción específica si lo necesitas
+                        },
+                      );
+                    } else {
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: _firestore
+                            .collection('posts')
+                            .doc(notificationData['postId'])
+                            .get(),
+                        builder: (context, postSnapshot) {
+                          if (postSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const ListTile(
+                              title: Text('Loading...'),
+                              subtitle: Text('Loading...'),
+                            );
+                          }
+
+                          if (postSnapshot.hasError) {
+                            return ListTile(
+                              title: const Text('Error loading post'),
+                              subtitle: Text('${postSnapshot.error}'),
+                            );
+                          }
+
+                          if (!postSnapshot.hasData ||
+                              postSnapshot.data == null) {
+                            return const ListTile(
+                              title: Text('Unknown post'),
+                              subtitle: Text('Unable to load post information'),
+                            );
+                          }
+
+                          var postData =
+                              postSnapshot.data!.data() as Map<String, dynamic>;
+
+                          return ListTile(
+                            title: Text(notificationData['type'] == 'like'
+                                ? 'Ha dado like a tu post'
+                                : 'Ha comentado tu post'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('@${senderData['username']}'),
+                                Text(timeago.format(timestamp.toDate(),
+                                    locale: 'es')),
+                              ],
+                            ),
+                            trailing: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SinglePostScreen(
+                                        postId: notificationData['postId']),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    image: CachedNetworkImageProvider(
+                                        postData['postImageUrl']),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => SinglePostScreen(postId: notificationData['postId']),
+                                  builder: (context) => SinglePostScreen(
+                                      postId: notificationData['postId']),
                                 ),
                               );
                             },
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: CachedNetworkImageProvider(postData['postImageUrl']),
-                                  fit: BoxFit.cover,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                          onTap: () {
-                            // Navigate to post
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SinglePostScreen(postId: notificationData['postId']),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
+                          );
+                        },
+                      );
+                    }
                   },
                 ),
               );

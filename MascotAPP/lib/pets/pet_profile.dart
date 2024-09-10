@@ -262,6 +262,11 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                                 const Icon(Icons.pets,
                                     color: Colors.brown, size: 18),
                               ],
+                              if (ownerRole == 'admin') ...[
+                                const SizedBox(width: 8),
+                                const Icon(Icons.verified_user,
+                                    color: Colors.red, size: 18),
+                              ],
                             ],
                           ),
                         ),

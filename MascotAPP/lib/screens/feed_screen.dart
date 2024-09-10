@@ -6,7 +6,7 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'dart:async';
 import '../pets/pet_profile.dart';
 import 'package:timeago/timeago.dart' as timeago;
-// Asegúrate de agregar este paquete
+import '../notifications/notification_service.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -16,6 +16,7 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
+  final NotificationService _notificationService = NotificationService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   static const int _initialPageSize = 2;
@@ -188,9 +189,15 @@ class _FeedScreenState extends State<FeedScreen> {
                                             color: Colors.brown,
                                             size: 16), // Patita icono
                                       ],
+                                      if (role == 'admin') ...[
+                                        const SizedBox(width: 5),
+                                        const Icon(Icons.verified_user,
+                                            color: Colors.red,
+                                            size: 16), // Patita icono
+                                      ],
                                     ],
                                   ),
-                                  trailing: currentUser?.uid == postedBy
+                                  trailing: (currentUser?.uid == postedBy)
                                       ? PopupMenuButton<String>(
                                           onSelected: (String value) {
                                             if (value == 'delete') {
@@ -381,7 +388,6 @@ class _FeedScreenState extends State<FeedScreen> {
   void _toggleLikePost(String postId, String userId, bool likedByCurrentUser,
       String postOwnerId) async {
     final postRef = _firestore.collection('posts').doc(postId);
-    final notificationRef = _firestore.collection('notifications');
 
     if (likedByCurrentUser) {
       await postRef.update({
@@ -392,24 +398,9 @@ class _FeedScreenState extends State<FeedScreen> {
         'likes': FieldValue.arrayUnion([userId]),
       });
 
-      final existingLikeNotification = await notificationRef
-          .where('recipient', isEqualTo: postOwnerId)
-          .where('sender', isEqualTo: userId)
-          .where('postId', isEqualTo: postId)
-          .where('type', isEqualTo: 'like')
-          .limit(1)
-          .get();
-
-      if (existingLikeNotification.docs.isEmpty) {
-        await notificationRef.add({
-          'recipient': postOwnerId,
-          'type': 'like',
-          'postId': postId,
-          'sender': userId,
-          'isRead': false,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-      }
+      // Llama al servicio de notificación para enviar notificación de "like"
+      await _notificationService.sendLikeNotification(
+          postId, userId, postOwnerId);
     }
     setState(() {});
   }
@@ -453,25 +444,9 @@ class _FeedScreenState extends State<FeedScreen> {
                           'userId': currentUser!.uid,
                         });
 
-                        final existingCommentNotification = await _firestore
-                            .collection('notifications')
-                            .where('recipient', isEqualTo: postOwnerId)
-                            .where('sender', isEqualTo: currentUser.uid)
-                            .where('postId', isEqualTo: postId)
-                            .where('type', isEqualTo: 'comment')
-                            .limit(1)
-                            .get();
-
-                        if (existingCommentNotification.docs.isEmpty) {
-                          await _firestore.collection('notifications').add({
-                            'recipient': postOwnerId,
-                            'type': 'comment',
-                            'postId': postId,
-                            'sender': currentUser.uid,
-                            'isRead': false,
-                            'timestamp': FieldValue.serverTimestamp(),
-                          });
-                        }
+                        // Llama al servicio de notificación para enviar notificación de "comentario"
+                        await _notificationService.sendCommentNotification(
+                            postId, currentUser.uid, postOwnerId);
 
                         Navigator.of(context).pop();
                       }

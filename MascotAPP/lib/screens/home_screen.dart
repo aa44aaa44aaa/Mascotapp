@@ -34,6 +34,7 @@ class HomeScreenState extends State<HomeScreen> {
   int _pendingPostCount = 0;
   bool _isPetOwner = false;
   int _adoptionRequestCount = 0;
+  int _adoptionFreshRequestCount = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -42,13 +43,28 @@ class HomeScreenState extends State<HomeScreen> {
     _loadUserProfile();
     _loadNotifications();
     _checkIfPetOwner();
-    _loadAdoptionRequests(); // Cargar las solicitudes de adopción no revisadas
+    _loadAdoptionRequests();
+    _loadAdoptionFreshRequests(); // Cargar las solicitudes de adopción no revisadas
   }
 
   Future<void> _loadAdoptionRequests() async {
     User? user = _auth.currentUser;
-    if (user != null && userRole == 'refugio') {
-      // Cargar solicitudes de adopción no revisadas del refugio
+    if (user != null) {
+      QuerySnapshot requests = await _firestore
+          .collection('ApplyAdopt')
+          .where('idRefugio', isEqualTo: user.uid)
+          .get();
+      if (mounted) {
+        setState(() {
+          _adoptionRequestCount = requests.docs.length;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadAdoptionFreshRequests() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
       QuerySnapshot requests = await _firestore
           .collection('ApplyAdopt')
           .where('idRefugio', isEqualTo: user.uid)
@@ -56,7 +72,7 @@ class HomeScreenState extends State<HomeScreen> {
           .get();
       if (mounted) {
         setState(() {
-          _adoptionRequestCount = requests.docs.length;
+          _adoptionFreshRequestCount = requests.docs.length;
         });
       }
     }
@@ -173,45 +189,46 @@ class HomeScreenState extends State<HomeScreen> {
         title: const Text('MascotAPP'),
         automaticallyImplyLeading: false,
         actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.assignment),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AdoptionRequestsScreen(),
-                    ),
-                  ).then((value) => _loadAdoptionRequests());
-                },
-              ),
-              if (_adoptionRequestCount > 0)
-                Positioned(
-                  right: 11,
-                  top: 11,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 14,
-                      minHeight: 14,
-                    ),
-                    child: Text(
-                      '$_adoptionRequestCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
+          if (userRole == 'refugio' || _adoptionRequestCount > 0)
+            Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.assignment),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdoptionRequestsScreen(),
                       ),
-                      textAlign: TextAlign.center,
+                    ).then((value) => _loadAdoptionRequests());
+                  },
+                ),
+                if (_adoptionFreshRequestCount > 0)
+                  Positioned(
+                    right: 11,
+                    top: 11,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 14,
+                        minHeight: 14,
+                      ),
+                      child: Text(
+                        '$_adoptionFreshRequestCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
+              ],
+            ),
           Stack(
             children: [
               IconButton(
@@ -310,13 +327,23 @@ class HomeScreenState extends State<HomeScreen> {
                       : const AssetImage('assets/default_profile.png')
                           as ImageProvider,
                 ),
-                if (userRole == 'refugio') // Verificamos si el rol es "refugio"
+                if (userRole == 'refugio')
                   Positioned(
                     bottom: 0,
                     right: 0,
                     child: Icon(
-                      Icons.pets, // Icono de la patita
+                      Icons.pets,
                       color: Colors.orange,
+                      size: 20,
+                    ),
+                  ),
+                if (userRole == 'admin')
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Icon(
+                      Icons.verified_user,
+                      color: Colors.red,
                       size: 20,
                     ),
                   ),
