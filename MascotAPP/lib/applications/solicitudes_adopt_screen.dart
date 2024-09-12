@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart'; // Importa url_launcher para abrir WhatsApp
-import '../notifications/notification_service.dart'; // Importa el servicio de notificaciones
+import '../services/notification_service.dart'; // Importa el servicio de notificaciones
 
 class AdoptionRequestsScreen extends StatefulWidget {
   const AdoptionRequestsScreen({Key? key}) : super(key: key);
@@ -95,6 +95,17 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
     }
   }
 
+  Future<void> _deleteRequest(String requestId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('ApplyAdopt')
+          .doc(requestId)
+          .delete();
+    } catch (e) {
+      print("Error deleting request: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,102 +134,124 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
                 itemBuilder: (context, index) {
                   var request = requests[index];
                   var data = request.data() as Map<String, dynamic>;
-                  var timeAgoString =
-                      timeago.format(data['fecsolicitud'].toDate());
+                  var timeAgoString = timeago
+                      .format(data['fecsolicitud'].toDate(), locale: 'es');
 
-                  return FutureBuilder<Map<String, dynamic>?>(
-                    future: _fetchPetData(data['idMascota']),
-                    builder: (context, petSnapshot) {
-                      if (!petSnapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      var petData = petSnapshot.data ?? {};
-                      var petImageUrl = petData['petImageUrl'] as String?;
-                      var petName =
-                          petData['petName'] as String? ?? 'Desconocido';
-
-                      return Card(
-                        margin: const EdgeInsets.all(8),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: petImageUrl != null
-                                ? CachedNetworkImageProvider(petImageUrl)
-                                : const AssetImage('assets/default_pet.png')
-                                    as ImageProvider,
-                            radius: 30,
-                            onBackgroundImageError: (_, __) =>
-                                const Icon(Icons.pets),
-                          ),
-                          title: Text(data['nombreComp'] ?? 'Solicitante'),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Mascota: $petName'),
-                              Text('Hace: $timeAgoString'),
-                            ],
-                          ),
-                          trailing: data['revisado']
-                              ? const Icon(Icons.check, color: Colors.green)
-                              : const Icon(Icons.info, color: Colors.orange),
-                          onTap: () {
-                            // Acción al seleccionar una solicitud
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text('Detalles de Solicitud'),
-                                  content: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text('Nombre: ${data['nombreComp']}'),
-                                      Text('RUT: ${data['rut']}'),
-                                      Text('Teléfono: ${data['numTel']}'),
-                                      Text('Dirección: ${data['dir']}'),
-                                      if (!data['revisado']) ...[
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            _markAsReviewed(
-                                              request,
-                                              data['idSolicitante'],
-                                              petName,
-                                            );
-                                          },
-                                          child: const Text(
-                                              'Marcar como revisado'),
-                                        ),
-                                        const SizedBox(height: 10),
-                                      ],
-                                      ElevatedButton.icon(
-                                        onPressed: () {
-                                          _launchWhatsApp(
-                                            data['numTel'],
-                                            'Hola ${data['nombreComp']}, te escribo por tu solicitud de adopción para la mascota $petName.',
-                                          );
-                                        },
-                                        icon: const Icon(Icons.phone),
-                                        label: const Text(
-                                            'Comunicarse al WhatsApp'),
-                                      ),
-                                    ],
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text('Cerrar'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
+                  return Dismissible(
+                    key: Key(request.id), // Llave única para cada elemento
+                    direction: DismissDirection
+                        .endToStart, // Dirección de deslizamiento
+                    background: Container(
+                      color: Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      alignment: Alignment.centerRight,
+                      child: const Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                      ),
+                    ),
+                    onDismissed: (direction) {
+                      _deleteRequest(
+                          request.id); // Borrar la solicitud de Firestore
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Solicitud eliminada')),
                       );
                     },
+                    child: FutureBuilder<Map<String, dynamic>?>(
+                      future: _fetchPetData(data['idMascota']),
+                      builder: (context, petSnapshot) {
+                        if (!petSnapshot.hasData) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        var petData = petSnapshot.data ?? {};
+                        var petImageUrl = petData['petImageUrl'] as String?;
+                        var petName =
+                            petData['petName'] as String? ?? 'Desconocido';
+
+                        return Card(
+                          margin: const EdgeInsets.all(8),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: petImageUrl != null
+                                  ? CachedNetworkImageProvider(petImageUrl)
+                                  : const AssetImage('assets/default_pet.png')
+                                      as ImageProvider,
+                              radius: 30,
+                              onBackgroundImageError: (_, __) =>
+                                  const Icon(Icons.pets),
+                            ),
+                            title: Text(data['nombreComp'] ?? 'Solicitante'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Mascota: $petName'),
+                                Text('$timeAgoString'),
+                              ],
+                            ),
+                            trailing: data['revisado']
+                                ? const Icon(Icons.check, color: Colors.green)
+                                : const Icon(Icons.info, color: Colors.orange),
+                            onTap: () {
+                              // Acción al seleccionar una solicitud
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text('Detalles de Solicitud'),
+                                    content: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text('Nombre: ${data['nombreComp']}'),
+                                        Text('RUT: ${data['rut']}'),
+                                        Text('Teléfono: ${data['numTel']}'),
+                                        Text('Dirección: ${data['dir']}'),
+                                        if (!data['revisado']) ...[
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              _markAsReviewed(
+                                                request,
+                                                data['idSolicitante'],
+                                                petName,
+                                              );
+                                            },
+                                            child: const Text(
+                                                'Marcar como revisado'),
+                                          ),
+                                          const SizedBox(height: 10),
+                                        ],
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            _launchWhatsApp(
+                                              data['numTel'],
+                                              'Hola ${data['nombreComp']}, te escribo por tu solicitud de adopción para la mascota $petName.',
+                                            );
+                                          },
+                                          icon: const Icon(Icons.phone),
+                                          label: const Text(
+                                              'Comunicarse al WhatsApp'),
+                                        ),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('Cerrar'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
                   );
                 },
               );

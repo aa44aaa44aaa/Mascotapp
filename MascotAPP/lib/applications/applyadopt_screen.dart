@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
+import '../services/validations_service.dart';
 
 class ApplyAdoptScreen extends StatefulWidget {
   final String petId;
@@ -53,54 +54,7 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
     }
   }
 
-  String _formatRut(String text) {
-    text = text.replaceAll('.', '').replaceAll('-', '');
-    if (text.length > 1) {
-      String rutBody = text.substring(0, text.length - 1);
-      String dv = text.substring(text.length - 1);
-      rutBody = rutBody.replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.');
-      return '$rutBody-$dv';
-    }
-    return text;
-  }
-
-  // Validar y formatear RUT en tiempo real
-  bool _validarRut(String rut) {
-    rut = rut.toUpperCase().replaceAll('.', '').replaceAll('-', '');
-    if (rut.length < 9) return false;
-
-    String aux = rut.substring(0, rut.length - 1);
-    String dv = rut.substring(rut.length - 1);
-
-    List<int> reversedRut = aux.split('').reversed.map(int.parse).toList();
-    List<int> factors = [2, 3, 4, 5, 6, 7];
-
-    int sum = 0;
-    for (int i = 0; i < reversedRut.length; i++) {
-      sum += reversedRut[i] * factors[i % factors.length];
-    }
-
-    int res = 11 - (sum % 11);
-
-    if (res == 11) return dv == '0';
-    if (res == 10) return dv == 'K';
-    return res.toString() == dv;
-  }
-
-  // Método para validar el número de teléfono chileno
-  bool _validarNumeroChileno(String numero) {
-    final regex = RegExp(r'^\+569\d{8}$'); // Formato "+569XXXXXXXX"
-    return regex.hasMatch(numero);
-  }
-
   Future<void> _submitForm() async {
-    if (!_validarNumeroChileno(_phoneController.text)) {
-      _showMessage(
-          'Número de teléfono inválido. Debe tener el formato "+569XXXXXXXX"');
-      return;
-    }
-
     final userId = FirebaseAuth.instance.currentUser?.uid;
     final petRef =
         FirebaseFirestore.instance.collection('pets').doc(widget.petId);
@@ -238,6 +192,9 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Este campo es obligatorio';
+                          } else if (!ValidationService.validarNombreCompleto(
+                              value)) {
+                            return 'Debe ingresar al menos un nombre y un apellido';
                           }
                           return null;
                         },
@@ -247,7 +204,7 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
                         decoration: const InputDecoration(labelText: 'RUT'),
                         onChanged: (value) {
                           setState(() {
-                            rut = _formatRut(value);
+                            rut = ValidationService.formatRut(value);
                             _rutController.value = TextEditingValue(
                               text: rut,
                               selection:
@@ -258,7 +215,7 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Este campo es obligatorio';
-                          } else if (!_validarRut(value)) {
+                          } else if (!ValidationService.validarRut(value)) {
                             return 'RUT inválido';
                           }
                           return null;
@@ -273,7 +230,8 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Este campo es obligatorio';
-                          } else if (!_validarNumeroChileno(value)) {
+                          } else if (!ValidationService.validarNumeroChileno(
+                              value)) {
                             return 'Número inválido. Debe tener el formato "+569XXXXXXXX"';
                           }
                           return null;

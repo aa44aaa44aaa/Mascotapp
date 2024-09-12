@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/home_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'register_screen.dart';
+import 'recovery_screen.dart'; // Importamos la nueva pantalla
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -136,7 +137,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const RecoveryScreen()),
+                  );
+                },
+                child: const Text("¿Olvidaste tu contraseña?"),
+              ),
+              const SizedBox(height: 16.0),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const RegisterScreen()),
                   );
                 },
                 child: const Text("Aún no tienes cuenta? Registrate!"),

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../applications/applyrefugioscreen.dart';
+import '../applications/applyrefugio_screen.dart';
 import '../applications/solicitudes_adopt_screen.dart';
 import '../login/login_screen.dart';
 import '../user/user_profile.dart';
@@ -14,7 +14,8 @@ import 'pets_screen.dart';
 import 'feed_screen.dart';
 import 'adoptar_screen.dart';
 import 'pending_posts_screen.dart';
-//import 'package:Mascotapp/mini_games_screen.dart';
+import '../admin/optimizephotos_screen.dart'; // Asegúrate de que esté importado correctamente
+import 'mini_games_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -433,6 +434,33 @@ class HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
+          // Opción de Optimización de Imágenes solo para admin
+          if (userRole == 'admin')
+            ListTile(
+              leading: const Icon(Icons.shield, color: Colors.red),
+              title: const Text('Optimización de imágenes'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ImageOptimizationScreen(),
+                  ),
+                );
+              },
+            ),
+          if (userRole == 'admin')
+            ListTile(
+              leading: const Icon(Icons.shield, color: Colors.red),
+              title: const Text('Minigames (Private)'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MiniGamesScreen(),
+                  ),
+                );
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.exit_to_app),
             title: const Text('Salir'),

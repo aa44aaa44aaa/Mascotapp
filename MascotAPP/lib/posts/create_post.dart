@@ -7,8 +7,10 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
-import 'package:image/image.dart' as img;
+import 'dart:typed_data';
+//import 'package:image/image.dart' as img;
 import '../screens/home_screen.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -41,7 +43,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             initAspectRatio: CropAspectRatioPreset.ratio5x4,
             lockAspectRatio: true,
             aspectRatioPresets: [
-              //CropAspectRatioPreset.ratio4x5,
               CropAspectRatioPreset.ratio5x4,
               CropAspectRatioPreset.ratio16x9,
               CropAspectRatioPreset.square,
@@ -53,19 +54,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ],
       );
       if (croppedFile != null) {
-        final bytes = await croppedFile.readAsBytes();
-        img.Image? image = img.decodeImage(bytes);
-        if (image != null) {
-          int quality = 100;
-          List<int> compressedBytes = img.encodeJpg(image, quality: quality);
-          while (compressedBytes.length > 1 * 1024 * 1024) {
-            // 1MB
-            quality -= 5;
-            compressedBytes = img.encodeJpg(image, quality: quality);
-          }
+        final croppedFileBytes = await croppedFile.readAsBytes();
+
+        // Comprimir la imagen al formato WebP utilizando flutter_image_compress
+        Uint8List? compressedBytes =
+            await FlutterImageCompress.compressWithList(
+          croppedFileBytes,
+          format: CompressFormat.webp,
+          quality: 80, // Puedes ajustar la calidad aquí
+        );
+
+        if (compressedBytes != null) {
+          // Crear un archivo temporal para almacenar la imagen comprimida en WebP
+          final tempDir = Directory.systemTemp;
+          final webpFile = File(
+              '${tempDir.path}/image_${DateTime.now().millisecondsSinceEpoch}.webp');
+          await webpFile.writeAsBytes(compressedBytes);
+
           setState(() {
-            _postImage = File(croppedFile.path)
-              ..writeAsBytesSync(compressedBytes);
+            _postImage = webpFile;
           });
         }
       }
@@ -91,7 +98,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           final storageRef = FirebaseStorage.instance
               .ref()
               .child('post_images')
-              .child('${user.uid}-${DateTime.now()}.jpg');
+              .child('${user.uid}-${DateTime.now()}.webp');
           final uploadTask = await storageRef.putFile(_postImage!);
 
           if (uploadTask.state == TaskState.success) {

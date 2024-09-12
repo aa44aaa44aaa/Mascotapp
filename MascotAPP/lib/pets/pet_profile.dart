@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart'; // Importar FirebaseAuth
 import '../posts/create_post_friend.dart';
 import '../user/user_profile.dart';
 import '../posts/single_post_screen.dart';
-import '../applications/applyadoptscreen.dart';
+import '../applications/applyadopt_screen.dart';
 
 class PetProfileScreen extends StatefulWidget {
   final String petId;

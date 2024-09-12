@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../notifications/notification_service.dart';
+import '../services/notification_service.dart';
+import '../services/validations_service.dart';
 
 class ApplyRefugioScreen extends StatefulWidget {
   const ApplyRefugioScreen({super.key});
@@ -14,6 +15,9 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _formKey = GlobalKey<FormState>();
+  String nombreComp = '';
+  String rut = '';
+  String numTel = '';
 
   bool _isRefugio = false;
   bool _isAdmin = false;
@@ -28,7 +32,7 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
   final TextEditingController _rutRepresentanteController =
       TextEditingController();
   final TextEditingController _telRepresentanteController =
-      TextEditingController();
+      TextEditingController(text: "+56");
   final TextEditingController _cantAnimalesController = TextEditingController();
 
   @override
@@ -36,6 +40,13 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
     super.initState();
     _loadUserData();
     _checkIfSubmitted();
+  }
+
+  @override
+  void dispose() {
+    _rutRepresentanteController.dispose();
+    _telRepresentanteController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -72,7 +83,7 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
         'nomRefugio': _nomRefugioController.text,
         'dirRefugio': _dirRefugioController.text,
         'nomRepresentante': _nomRepresentanteController.text,
-        'rutRepresentante': _formatRut(_rutRepresentanteController.text),
+        'rutRepresentante': rut,
         'telRepresentante': _telRepresentanteController.text,
         'cantAnimales': int.parse(_cantAnimalesController.text),
         'fecsolicitud': DateTime.now(),
@@ -96,48 +107,6 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
         _hasSubmitted = true;
       });
     }
-  }
-
-  // Formatear RUT
-  String _formatRut(String text) {
-    text = text.replaceAll('.', '').replaceAll('-', '');
-    if (text.length > 1) {
-      String rutBody = text.substring(0, text.length - 1);
-      String dv = text.substring(text.length - 1);
-      rutBody = rutBody.replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.');
-      return '$rutBody-$dv';
-    }
-    return text;
-  }
-
-  // Validar RUT
-  bool _validarRut(String rut) {
-    rut = rut.toUpperCase().replaceAll('.', '').replaceAll('-', '');
-    if (rut.length < 9) return false;
-
-    String aux = rut.substring(0, rut.length - 1);
-    String dv = rut.substring(rut.length - 1);
-
-    List<int> reversedRut = aux.split('').reversed.map(int.parse).toList();
-    List<int> factors = [2, 3, 4, 5, 6, 7];
-
-    int sum = 0;
-    for (int i = 0; i < reversedRut.length; i++) {
-      sum += reversedRut[i] * factors[i % factors.length];
-    }
-
-    int res = 11 - (sum % 11);
-
-    if (res == 11) return dv == '0';
-    if (res == 10) return dv == 'K';
-    return res.toString() == dv;
-  }
-
-  // Validar número chileno
-  bool _validarNumeroChileno(String numero) {
-    final regex = RegExp(r'^\+569\d{8}$'); // Formato "+569XXXXXXXX"
-    return regex.hasMatch(numero);
   }
 
   @override
@@ -222,11 +191,15 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
           ),
           TextFormField(
             controller: _nomRepresentanteController,
-            decoration:
-                const InputDecoration(labelText: 'Nombre del representante'),
+            decoration: const InputDecoration(
+              labelText: 'Nombre del representante',
+            ),
+            onChanged: (value) => nombreComp = value,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Este campo es obligatorio';
+              } else if (!ValidationService.validarNombreCompleto(value)) {
+                return 'Debe ingresar al menos un nombre y un apellido';
               }
               return null;
             },
@@ -235,11 +208,19 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
             controller: _rutRepresentanteController,
             decoration:
                 const InputDecoration(labelText: 'RUT del representante'),
+            onChanged: (value) {
+              setState(() {
+                rut = ValidationService.formatRut(value);
+                _rutRepresentanteController.value = TextEditingValue(
+                  text: rut,
+                  selection: TextSelection.collapsed(offset: rut.length),
+                );
+              });
+            },
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Este campo es obligatorio';
-              }
-              if (!_validarRut(value)) {
+              } else if (!ValidationService.validarRut(value)) {
                 return 'RUT inválido';
               }
               return null;
@@ -253,9 +234,8 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Este campo es obligatorio';
-              }
-              if (!_validarNumeroChileno(value)) {
-                return 'Teléfono inválido, debe ser en formato +569XXXXXXXX';
+              } else if (!ValidationService.validarNumeroChileno(value)) {
+                return 'Número inválido. Debe tener el formato "+569XXXXXXXX"';
               }
               return null;
             },
@@ -263,7 +243,7 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
           TextFormField(
             controller: _cantAnimalesController,
             decoration:
-                const InputDecoration(labelText: 'Cantidad de animales'),
+                const InputDecoration(labelText: 'Cantidad de animales (Aprox.)'),
             keyboardType: TextInputType.number,
             validator: (value) {
               if (value == null || value.isEmpty) {

@@ -18,7 +18,8 @@ class RegisterScreen extends StatefulWidget {
   _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
+class _RegisterScreenState extends State<RegisterScreen>
+    with SingleTickerProviderStateMixin {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
   final _formKey = GlobalKey<FormState>();
@@ -305,10 +306,12 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            const Text('Bienvenid@ a MascotAPP!'),
+            const SizedBox(height: 16.0),
             SvgPicture.asset(
-                'assets/cat.svg', // Assumed your SVG image path
-                height: 100,
-              ),
+              'assets/cat.svg', // Assumed your SVG image path
+              height: 100,
+            ),
             const Text('Primero, ingresa tus credenciales.'),
             const SizedBox(height: 16.0),
             TextFormField(
@@ -325,6 +328,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                   return 'Formato de email incorrecto';
                 }
+                if (value.length > 255)
+                  return 'El email no puede tener más de 255 caracteres';
                 return null;
               },
             ),
@@ -379,32 +384,32 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SvgPicture.asset(
-                'assets/profile.svg', // Assumed your SVG image path
-                height: 100,
-              ),
+              'assets/profile.svg', // Assumed your SVG image path
+              height: 100,
+            ),
             const Text('Ahora, creemos tu perfil!'),
             const SizedBox(height: 16.0),
             TextFormField(
-  decoration: InputDecoration(
-    prefixIcon: const Icon(Icons.account_circle),
-    prefix: const Padding(
-      padding: EdgeInsets.only(),
-      child: Text('@'),
-    ),
-    labelText: 'Nombre de usuario',
-    suffixIcon: isUsernameAvailable
-        ? const Icon(Icons.check, color: Colors.green)
-        : const Icon(Icons.close, color: Colors.red),
-  ),
-  onChanged: _onUsernameChanged,
-  onSaved: (value) => username = value,
-  validator: (value) {
-    if (value!.isEmpty) return 'Ingresa tu nombre de usuario';
-    if (value.length < 3) return 'El nombre de usuario debe tener al menos 3 caracteres';
-    return null;
-  },
-),
-
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.account_circle),
+                prefix: const Padding(
+                  padding: EdgeInsets.only(),
+                  child: Text('@'),
+                ),
+                labelText: 'Nombre de usuario',
+                suffixIcon: isUsernameAvailable
+                    ? const Icon(Icons.check, color: Colors.green)
+                    : const Icon(Icons.close, color: Colors.red),
+              ),
+              onChanged: _onUsernameChanged,
+              onSaved: (value) => username = value,
+              validator: (value) {
+                if (value!.isEmpty) return 'Ingresa tu nombre de usuario';
+                if (value.length < 2 || value.length > 30)
+                  return 'El nombre de usuario debe tener entre 2 y 30 caracteres';
+                return null;
+              },
+            ),
             const SizedBox(height: 16.0),
             TextFormField(
               decoration: const InputDecoration(
@@ -414,6 +419,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               onSaved: (value) => profileName = value,
               validator: (value) {
                 if (value!.isEmpty) return 'Ingresa tu nombre';
+                if (value.length < 2 || value.length > 80)
+                  return 'El nombre de perfil debe tener entre 2 y 80 caracteres';
                 return null;
               },
             ),
@@ -424,6 +431,11 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 labelText: 'Biografía',
               ),
               onSaved: (value) => bio = value,
+              validator: (value) {
+                if (value != null && value.length > 150)
+                  return 'La biografía no puede tener más de 150 caracteres';
+                return null;
+              },
             ),
             const SizedBox(height: 16.0),
             TextFormField(
@@ -451,7 +463,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 return null;
               },
               controller: TextEditingController(
-                text: birthDate != null ? DateFormat('dd-MM-yyyy').format(birthDate!) : '',
+                text: birthDate != null
+                    ? DateFormat('dd-MM-yyyy').format(birthDate!)
+                    : '',
               ),
             ),
             const SizedBox(height: 16.0),
@@ -505,8 +519,11 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               },
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
-                child: _profileImage == null ? const Icon(Icons.camera_alt, size: 50) : null,
+                backgroundImage:
+                    _profileImage != null ? FileImage(_profileImage!) : null,
+                child: _profileImage == null
+                    ? const Icon(Icons.camera_alt, size: 50)
+                    : null,
               ),
             ),
             const SizedBox(height: 16.0),
