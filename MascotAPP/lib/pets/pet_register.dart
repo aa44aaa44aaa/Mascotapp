@@ -135,7 +135,7 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
           final storageRef = FirebaseStorage.instance
               .ref()
               .child('pet_images')
-              .child('${user!.uid}-${petName!}.jpg');
+              .child('${user!.uid}-${petName!}.webp');
           final uploadTask = await storageRef.putFile(_petImage!);
 
           if (uploadTask.state == TaskState.success) {

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/home_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'register_screen.dart';
-import 'recovery_screen.dart'; // Importamos la nueva pantalla
+import 'recovery_screen.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
               elevation: 1,
               content: AwesomeSnackbarContent(
                 title: 'Verificación',
-                message: 'Necesitamos verificarte, revisa tu correo porfavor',
+                message: 'Necesitamos verificarte, revisa tu correo por favor',
                 contentType: ContentType.warning,
               ),
             ),
@@ -63,8 +63,24 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
+      } on FirebaseAuthException catch (e) {
+        String errorMessage;
+
+        errorMessage = 'Credenciales Incorrectas!';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.transparent,
+            behavior: SnackBarBehavior.floating,
+            elevation: 1,
+            content: AwesomeSnackbarContent(
+              title: 'Error de autenticación',
+              message: errorMessage,
+              contentType: ContentType.failure,
+            ),
+          ),
+        );
       } catch (e) {
-        print(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),

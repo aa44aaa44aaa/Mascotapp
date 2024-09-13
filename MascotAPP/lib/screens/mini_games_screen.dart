@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../minigames-private/flappy_bird_game.dart';
 import '../minigames-private/memory_game.dart';
 
 class MiniGamesScreen extends StatelessWidget {
@@ -40,27 +39,7 @@ class MiniGamesScreen extends StatelessWidget {
                     builder: (context) => const MemoryGameScreen()),
               );
             },
-          ),
-          ListTile(
-            title: const Text('Flappy Bird con mi mascota'),
-            onTap: () async {
-              String? petImageUrl = await _getPetImageUrl(context);
-              if (petImageUrl != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          FlappyBirdGame(petImageUrl: petImageUrl)),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content:
-                          Text('No se encontró una mascota para este usuario')),
-                );
-              }
-            },
-          ),
+          )
           // Agrega más minijuegos aquí
         ],
       ),

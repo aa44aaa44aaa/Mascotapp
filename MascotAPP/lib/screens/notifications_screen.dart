@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:timeago/timeago.dart' as timeago_es;
 import '../posts/single_post_screen.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class NotificationsScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -81,7 +82,16 @@ class NotificationsScreen extends StatelessWidget {
                       .doc(notifications[index].id)
                       .delete();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Notificación borrada')),
+                    SnackBar(
+                      content: AwesomeSnackbarContent(
+                        title: 'Notificacion Eliminada',
+                        message: 'Borrada exitosamente.',
+                        contentType: ContentType.failure,
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                    ),
                   );
                 },
                 background: Container(

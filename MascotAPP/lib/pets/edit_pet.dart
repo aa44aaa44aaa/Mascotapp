@@ -65,7 +65,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
           final storageRef = FirebaseStorage.instance
               .ref()
               .child('pet_images')
-              .child('${widget.petId}.jpg');
+              .child('${widget.petId}.webp');
           final uploadTask = await storageRef.putFile(_petImage!);
 
           if (uploadTask.state == TaskState.success) {

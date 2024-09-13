@@ -7,15 +7,16 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'dart:core';
 
-class ImageOptimizationScreen extends StatefulWidget {
-  const ImageOptimizationScreen({super.key});
+class ImageFeedOptimizationScreen extends StatefulWidget {
+  const ImageFeedOptimizationScreen({super.key});
 
   @override
-  _ImageOptimizationScreenState createState() =>
-      _ImageOptimizationScreenState();
+  _ImageFeedOptimizationScreenState createState() =>
+      _ImageFeedOptimizationScreenState();
 }
 
-class _ImageOptimizationScreenState extends State<ImageOptimizationScreen> {
+class _ImageFeedOptimizationScreenState
+    extends State<ImageFeedOptimizationScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _currentUserRole;

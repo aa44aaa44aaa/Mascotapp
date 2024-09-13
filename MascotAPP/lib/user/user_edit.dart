@@ -7,6 +7,8 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image/image.dart' as img;
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:typed_data';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class UserEditScreen extends StatefulWidget {
   const UserEditScreen({super.key});
@@ -35,7 +37,8 @@ class _UserEditScreenState extends State<UserEditScreen> {
 
   Future<void> _loadUserProfile() async {
     String userId = _auth.currentUser!.uid;
-    DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+    DocumentSnapshot userDoc =
+        await _firestore.collection('users').doc(userId).get();
     setState(() {
       profileImageUrl = userDoc['profileImageUrl'];
       username = userDoc['username'];
@@ -67,15 +70,27 @@ class _UserEditScreenState extends State<UserEditScreen> {
         ],
       );
       if (croppedFile != null) {
-        // Optimize image
-        final bytes = await croppedFile.readAsBytes();
-        img.Image? image = img.decodeImage(bytes);
-        if (image != null) {
-          final resizedImage = img.copyResize(image, width: 512, height: 512);
-          final compressedBytes = img.encodeJpg(resizedImage, quality: 70);
+        // Leer los bytes del archivo recortado
+        final croppedFileBytes = await croppedFile.readAsBytes();
+
+        // Comprimir la imagen al formato WebP utilizando flutter_image_compress
+        Uint8List? compressedBytes =
+            await FlutterImageCompress.compressWithList(
+          croppedFileBytes,
+          format: CompressFormat.webp,
+          quality: 80, // Ajusta la calidad según tus necesidades
+        );
+
+        if (compressedBytes != null) {
+          // Crear un archivo temporal para almacenar la imagen comprimida en WebP
+          final tempDir = Directory.systemTemp;
+          final webpFile = File(
+              '${tempDir.path}/image_${DateTime.now().millisecondsSinceEpoch}.webp');
+          await webpFile.writeAsBytes(compressedBytes);
+
+          // Actualizar el estado con la imagen comprimida
           setState(() {
-            _profileImage = File(croppedFile.path)
-              ..writeAsBytesSync(compressedBytes);
+            _profileImage = webpFile;
           });
         }
       }
@@ -94,7 +109,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('profile_images')
-          .child('$userId.jpg');
+          .child('$userId.webp');
       final uploadTask = await storageRef.putFile(_profileImage!);
 
       if (uploadTask.state == TaskState.success) {
@@ -142,7 +157,8 @@ class _UserEditScreenState extends State<UserEditScreen> {
                           ? FileImage(_profileImage!)
                           : profileImageUrl != null
                               ? CachedNetworkImageProvider(profileImageUrl!)
-                              : const AssetImage('assets/default_profile.png') as ImageProvider,
+                              : const AssetImage('assets/default_profile.png')
+                                  as ImageProvider,
                       child: _profileImage == null && profileImageUrl == null
                           ? const Icon(Icons.camera_alt, size: 50)
                           : null,
@@ -151,7 +167,8 @@ class _UserEditScreenState extends State<UserEditScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _profileNameController,
-                    decoration: const InputDecoration(labelText: 'Nombre de perfil'),
+                    decoration:
+                        const InputDecoration(labelText: 'Nombre de perfil'),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(

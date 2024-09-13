@@ -7,9 +7,11 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image/image.dart' as img;
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'dart:typed_data';
 import 'dart:async';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -77,15 +79,27 @@ class _RegisterScreenState extends State<RegisterScreen>
         ],
       );
       if (croppedFile != null) {
-        // Optimize image
-        final bytes = await croppedFile.readAsBytes();
-        img.Image? image = img.decodeImage(bytes);
-        if (image != null) {
-          final resizedImage = img.copyResize(image, width: 512, height: 512);
-          final compressedBytes = img.encodeJpg(resizedImage, quality: 70);
+        // Leer los bytes del archivo recortado
+        final croppedFileBytes = await croppedFile.readAsBytes();
+
+        // Comprimir la imagen al formato WebP utilizando flutter_image_compress
+        Uint8List? compressedBytes =
+            await FlutterImageCompress.compressWithList(
+          croppedFileBytes,
+          format: CompressFormat.webp,
+          quality: 80, // Ajusta la calidad según tus necesidades
+        );
+
+        if (compressedBytes != null) {
+          // Crear un archivo temporal para almacenar la imagen comprimida en WebP
+          final tempDir = Directory.systemTemp;
+          final webpFile = File(
+              '${tempDir.path}/image_${DateTime.now().millisecondsSinceEpoch}.webp');
+          await webpFile.writeAsBytes(compressedBytes);
+
+          // Actualizar el estado con la imagen comprimida
           setState(() {
-            _profileImage = File(croppedFile.path)
-              ..writeAsBytesSync(compressedBytes);
+            _profileImage = webpFile;
           });
         }
       }
@@ -112,7 +126,7 @@ class _RegisterScreenState extends State<RegisterScreen>
           final storageRef = FirebaseStorage.instance
               .ref()
               .child('profile_images')
-              .child('${userCredential.user!.uid}.jpg');
+              .child('${userCredential.user!.uid}.webp');
           final uploadTask = await storageRef.putFile(_profileImage!);
 
           if (uploadTask.state == TaskState.success) {

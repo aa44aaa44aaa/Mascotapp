@@ -14,7 +14,10 @@ import 'pets_screen.dart';
 import 'feed_screen.dart';
 import 'adoptar_screen.dart';
 import 'pending_posts_screen.dart';
-import '../admin/optimizephotos_screen.dart'; // Asegúrate de que esté importado correctamente
+import '../admin/optimize_feed_screen.dart';
+import '../admin/optimize_user_screen.dart';
+import '../admin/optimize_pet_screen.dart';
+import '../admin/solicitudes_refugio_screen.dart';
 import 'mini_games_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -438,12 +441,40 @@ class HomeScreenState extends State<HomeScreen> {
           if (userRole == 'admin')
             ListTile(
               leading: const Icon(Icons.shield, color: Colors.red),
-              title: const Text('Optimización de imágenes'),
+              title: const Text('Optimización de imágenes (Feed)'),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ImageOptimizationScreen(),
+                    builder: (context) => const ImageFeedOptimizationScreen(),
+                  ),
+                );
+              },
+            ),
+          if (userRole == 'admin')
+            ListTile(
+              leading: const Icon(Icons.shield, color: Colors.red),
+              title: const Text('Optimización de imágenes (Foto Perfil)'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const ProfileImageOptimizationScreen(),
+                  ),
+                );
+              },
+            ),
+          if (userRole == 'admin')
+            ListTile(
+              leading: const Icon(Icons.shield, color: Colors.red),
+              title:
+                  const Text('Optimización de imágenes (Foto Perfil Mascotas)'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PetImageOptimizationScreen(),
                   ),
                 );
               },
@@ -457,6 +488,19 @@ class HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const MiniGamesScreen(),
+                  ),
+                );
+              },
+            ),
+          if (userRole == 'admin')
+            ListTile(
+              leading: const Icon(Icons.shield, color: Colors.red),
+              title: const Text('Solicitudes de Refugio'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RefugeRequestsScreen(),
                   ),
                 );
               },

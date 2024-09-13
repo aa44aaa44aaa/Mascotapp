@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:url_launcher/url_launcher.dart'; // Importa url_launcher para abrir WhatsApp
+import '../services/functions_services.dart'; // Importa el servicio de funciones
 import '../services/notification_service.dart'; // Importa el servicio de notificaciones
 
 class AdoptionRequestsScreen extends StatefulWidget {
@@ -15,6 +15,8 @@ class AdoptionRequestsScreen extends StatefulWidget {
 
 class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
   bool _isLoading = false; // Indicador de carga
+  final FunctionsServices _functionsServices =
+      FunctionsServices(); // Instancia del servicio
 
   Future<List<DocumentSnapshot>> _fetchAdoptionRequests() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -44,21 +46,9 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
     }
   }
 
-  Future<void> _launchWhatsApp(String phoneNumber, String message) async {
-    final whatsappUrl1 =
-        'whatsapp://send?phone=$phoneNumber?text=${Uri.encodeComponent(message)}';
-    final whatsappUrl = Uri.parse(whatsappUrl1);
-    if (await canLaunchUrl(whatsappUrl)) {
-      await launchUrl(whatsappUrl);
-    } else {
-      throw 'Could not launch $whatsappUrl';
-    }
-  }
-
   Future<void> _sendReviewNotification(
       String idSolicitante, String petName) async {
     try {
-      // Enviar notificación personalizada
       final NotificationService notificationService = NotificationService();
       await notificationService.sendCustomNotification(
         'Tu solicitud de adopción para $petName ha sido revisada, espera a ser contactado.',
@@ -73,7 +63,7 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
   Future<void> _markAsReviewed(
       DocumentSnapshot request, String idSolicitante, String petName) async {
     setState(() {
-      _isLoading = true; // Mostrar el indicador de carga
+      _isLoading = true;
     });
 
     try {
@@ -82,16 +72,15 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
           .doc(request.id)
           .update({'revisado': true});
 
-      // Enviar notificación al usuario
       await _sendReviewNotification(idSolicitante, petName);
     } catch (e) {
       print("Error marking as reviewed: $e");
     } finally {
       setState(() {
-        _isLoading = false; // Ocultar el indicador de carga
+        _isLoading = false;
       });
 
-      Navigator.of(context).pop(); // Cerrar el diálogo
+      Navigator.of(context).pop();
     }
   }
 
@@ -138,9 +127,8 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
                       .format(data['fecsolicitud'].toDate(), locale: 'es');
 
                   return Dismissible(
-                    key: Key(request.id), // Llave única para cada elemento
-                    direction: DismissDirection
-                        .endToStart, // Dirección de deslizamiento
+                    key: Key(request.id),
+                    direction: DismissDirection.endToStart,
                     background: Container(
                       color: Colors.red,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -151,8 +139,7 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
                       ),
                     ),
                     onDismissed: (direction) {
-                      _deleteRequest(
-                          request.id); // Borrar la solicitud de Firestore
+                      _deleteRequest(request.id);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Solicitud eliminada')),
                       );
@@ -194,7 +181,6 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
                                 ? const Icon(Icons.check, color: Colors.green)
                                 : const Icon(Icons.info, color: Colors.orange),
                             onTap: () {
-                              // Acción al seleccionar una solicitud
                               showDialog(
                                 context: context,
                                 builder: (context) {
@@ -225,7 +211,7 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
                                         ],
                                         ElevatedButton.icon(
                                           onPressed: () {
-                                            _launchWhatsApp(
+                                            _functionsServices.launchWhatsApp(
                                               data['numTel'],
                                               'Hola ${data['nombreComp']}, te escribo por tu solicitud de adopción para la mascota $petName.',
                                             );
@@ -257,7 +243,7 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
               );
             },
           ),
-          if (_isLoading) // Mostrar el cargando cuando _isLoading es true
+          if (_isLoading)
             const Center(
               child: CircularProgressIndicator(),
             ),
