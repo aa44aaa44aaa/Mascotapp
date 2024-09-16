@@ -44,11 +44,21 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
-    _loadNotifications();
-    _checkIfPetOwner();
-    _loadAdoptionRequests();
-    _loadAdoptionFreshRequests(); // Cargar las solicitudes de adopción no revisadas
+    _checkUserSession();
+  }
+
+  Future<void> _checkUserSession() async {
+    User? user = _auth.currentUser;
+
+    if (user == null) {
+      _showSessionExpiredDialog();
+    } else {
+      _loadUserProfile();
+      _loadNotifications();
+      _checkIfPetOwner();
+      _loadAdoptionRequests();
+      _loadAdoptionFreshRequests();
+    }
   }
 
   Future<void> _loadAdoptionRequests() async {
@@ -176,6 +186,30 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _showSessionExpiredDialog() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Sesión expirada'),
+          content:
+              const Text('Su sesión ha expirado, vuelva a ingresar por favor.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   final List<Widget> _screens = [
     const FeedScreen(),
     const CreatePostScreen(),
@@ -186,6 +220,14 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    User? user = _auth.currentUser;
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       key: _scaffoldKey,
       endDrawer: _buildDrawer(),
