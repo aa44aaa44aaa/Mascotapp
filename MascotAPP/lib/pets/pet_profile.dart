@@ -85,6 +85,7 @@ class _PetProfileScreenState extends State<PetProfileScreen>
           var isVerified = pet['verified'] ?? false;
           var estado = pet['estado'];
           var textoestado = pet['textoestado'] ?? '';
+          var location = pet['location'];
 
           var birthDate = (pet['birthDate'] as Timestamp).toDate();
           var formattedBirthDate = DateFormat('dd-MM-yyyy').format(birthDate);
@@ -215,6 +216,13 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                       style: const TextStyle(fontSize: 18),
                     ),
                   ),
+                  if (estado == 'perdido') ...[
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(Icons.location_off_sharp,
+                          color: Colors.red, size: 25),
+                      Text(location),
+                    ]),
+                  ],
                   const SizedBox(height: 8),
                   FutureBuilder<DocumentSnapshot>(
                     future: FirebaseFirestore.instance
@@ -273,6 +281,7 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                       );
                     },
                   ),
+
                   const SizedBox(height: 8),
                   // Datos en fila: vacunado, esterilizado, edad
                   Row(
@@ -306,6 +315,12 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                     ],
                   ),
                   const SizedBox(height: 8),
+                  if (estado == 'adopcion') ...[
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(Icons.location_pin, color: Colors.red, size: 25),
+                      Text(location),
+                    ]),
+                  ],
                   if (estado == 'adopcion')
                     Center(
                       child: ElevatedButton(
