@@ -52,7 +52,8 @@ class _PetsScreenState extends State<PetsScreen> {
               var pet = pets[index].data() as Map<String, dynamic>;
               var petId = pets[index].id;
               var birthDate = (pet['birthDate'] as Timestamp).toDate();
-              var formattedBirthDate = DateFormat('dd-MM-yyyy').format(birthDate);
+              var formattedBirthDate =
+                  DateFormat('dd-MM-yyyy').format(birthDate);
               var isVerified = pet['verified'] ?? false;
               var estado = pet['estado'] ?? '';
 
@@ -107,7 +108,9 @@ class _PetsScreenState extends State<PetsScreen> {
                         const SizedBox(width: 8),
                         const Tooltip(
                           message: 'Mascota Verificada',
-                          child: Icon(Icons.verified, color: Colors.blue, size: 16),
+                          triggerMode: TooltipTriggerMode.tap,
+                          child: Icon(Icons.verified,
+                              color: Colors.blue, size: 16),
                         ),
                       ],
                     ],
@@ -118,7 +121,9 @@ class _PetsScreenState extends State<PetsScreen> {
                       Text('Tipo: ${pet['petType']}'),
                       Text('Raza: ${pet['petBreed']}'),
                       Text('Fecha de nacimiento: $formattedBirthDate'),
-                      if (labelText != null && labelColor != null && icon != null)
+                      if (labelText != null &&
+                          labelColor != null &&
+                          icon != null)
                         Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
@@ -131,7 +136,8 @@ class _PetsScreenState extends State<PetsScreen> {
                               const SizedBox(width: 4),
                               Text(
                                 labelText,
-                                style: const TextStyle(color: Colors.white, fontSize: 12),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
                               ),
                             ],
                           ),

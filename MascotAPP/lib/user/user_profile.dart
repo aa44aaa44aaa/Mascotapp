@@ -112,10 +112,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(width: 8), // Espacio entre el nombre y la patita
                 if (userRole ==
                     'refugio') // Mostrar la patita si el rol es "refugio"
-                  const Icon(Icons.pets, color: Colors.orange, size: 24),
+                  const Tooltip(
+                    message: 'Refugio Verificado de MascotApp',
+                    triggerMode: TooltipTriggerMode.tap,
+                    child: Icon(Icons.pets, color: Colors.orange, size: 24),
+                  ),
                 if (userRole ==
                     'admin') // Mostrar la patita si el rol es "refugio"
-                  const Icon(Icons.verified_user, color: Colors.red, size: 24),
+                  const Tooltip(
+                    message: 'Administrador de MascotApp',
+                    triggerMode: TooltipTriggerMode.tap,
+                    child:
+                        Icon(Icons.verified_user, color: Colors.red, size: 24),
+                  ),
               ],
             ),
             Text(

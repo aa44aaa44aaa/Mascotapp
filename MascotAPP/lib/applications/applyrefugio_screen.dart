@@ -113,7 +113,7 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ser Refugio'),
+        title: const Text('Postulación a Refugio'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -168,6 +168,37 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
       key: _formKey,
       child: ListView(
         children: [
+          Row(
+            children: [
+              Icon(Icons.pets, color: Colors.brown, size: 50),
+              const SizedBox(width: 16),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Gracias por tu interés en ser refugio!",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
+                    ),
+                    Text(
+                      "Necesitamos saber más de ti",
+                      style: const TextStyle(
+                        fontSize: 16,
+                      ),
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
           TextFormField(
             controller: _nomRefugioController,
             decoration: const InputDecoration(labelText: 'Nombre del refugio'),
@@ -242,8 +273,8 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
           ),
           TextFormField(
             controller: _cantAnimalesController,
-            decoration:
-                const InputDecoration(labelText: 'Cantidad de animales (Aprox.)'),
+            decoration: const InputDecoration(
+                labelText: 'Cantidad de animales (Aprox.)'),
             keyboardType: TextInputType.number,
             validator: (value) {
               if (value == null || value.isEmpty) {

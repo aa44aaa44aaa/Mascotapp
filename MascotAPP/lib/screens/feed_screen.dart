@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'dart:async';
 import '../pets/pet_profile.dart';
+import '../user/user_profile.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../services/notification_service.dart';
 
@@ -107,9 +108,9 @@ class _FeedScreenState extends State<FeedScreen> {
           return StreamBuilder<DocumentSnapshot>(
             stream: _firestore.collection('posts').doc(postId).snapshots(),
             builder: (context, postSnapshot) {
-              if (postSnapshot.connectionState == ConnectionState.waiting) {
-                return _buildPostPlaceholder(); // Mostrar placeholder si aún se están cargando los datos
-              }
+              //if (postSnapshot.connectionState == ConnectionState.waiting) {
+              //  return _buildPostPlaceholder(); // Mostrar placeholder si aún se están cargando los datos
+              //}
 
               // Verifica si el documento existe antes de acceder a los datos
               if (!postSnapshot.hasData || postSnapshot.data == null) {
@@ -119,9 +120,9 @@ class _FeedScreenState extends State<FeedScreen> {
               var postData = postSnapshot.data!.data() as Map<String, dynamic>?;
 
               // Verifica si los datos del post no son nulos
-              if (postData == null) {
-                return _buildPostPlaceholder(); // Si no hay datos válidos, retornar placeholder
-              }
+              //if (postData == null) {
+              //  return _buildPostPlaceholder(); // Si no hay datos válidos, retornar placeholder
+              //}
               var post = postSnapshot.data!.data() as Map<String, dynamic>;
               var petId = post['petId'];
               var postedBy = post['postedby'];
@@ -207,35 +208,55 @@ class _FeedScreenState extends State<FeedScreen> {
                                               as ImageProvider,
                                     ),
                                   ),
-                                  title: Row(
-                                    children: [
-                                      Text(pet['petName']),
-                                      if (isVerified) ...[
-                                        const SizedBox(width: 5),
-                                        const Tooltip(
-                                          message: 'Mascota Verificada',
-                                          child: Icon(Icons.verified,
-                                              color: Colors.blue, size: 16),
+                                  title: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              PetProfileScreen(petId: petId),
                                         ),
+                                      );
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Text(pet['petName']),
+                                        if (isVerified) ...[
+                                          const SizedBox(width: 5),
+                                          Icon(Icons.verified,
+                                              color: Colors.blue, size: 16),
+                                        ],
                                       ],
-                                    ],
+                                    ),
                                   ),
-                                  subtitle: Row(
-                                    children: [
-                                      Text('@${user['username']}'),
-                                      if (role == 'refugio') ...[
-                                        const SizedBox(width: 5),
-                                        const Icon(Icons.pets,
-                                            color: Colors.brown,
-                                            size: 16), // Patita icono
+                                  subtitle: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              UserProfileScreen(
+                                                  userId: postedBy),
+                                        ),
+                                      );
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Text('@${user['username']}'),
+                                        if (role == 'refugio') ...[
+                                          const SizedBox(width: 5),
+                                          const Icon(Icons.pets,
+                                              color: Colors.brown,
+                                              size: 16), // Patita icono
+                                        ],
+                                        if (role == 'admin') ...[
+                                          const SizedBox(width: 5),
+                                          const Icon(Icons.verified_user,
+                                              color: Colors.red,
+                                              size: 16), // Patita icono
+                                        ],
                                       ],
-                                      if (role == 'admin') ...[
-                                        const SizedBox(width: 5),
-                                        const Icon(Icons.verified_user,
-                                            color: Colors.red,
-                                            size: 16), // Patita icono
-                                      ],
-                                    ],
+                                    ),
                                   ),
                                   trailing: (currentUser?.uid == postedBy ||
                                           _currentUserRole == 'admin')
@@ -321,7 +342,13 @@ class _FeedScreenState extends State<FeedScreen> {
                                     ),
                                   ],
                                 ),
-                                _buildCommentsSection(postId),
+                                GestureDetector(
+                                  onTap: () {
+                                    _showCommentDialog(
+                                        context, postId, postedBy);
+                                  },
+                                  child: _buildCommentsSection(postId),
+                                ),
                               ],
                             ),
                             if (labelText != null &&
@@ -625,9 +652,21 @@ class _FeedScreenState extends State<FeedScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(user['profileImageUrl']),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  UserProfileScreen(userId: comment['userId']),
+                            ),
+                          );
+                        },
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage:
+                              NetworkImage(user['profileImageUrl']),
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -643,11 +682,23 @@ class _FeedScreenState extends State<FeedScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    '@${user['username']}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              UserProfileScreen(
+                                                  userId: comment['userId']),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      '@${user['username']}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 5),
