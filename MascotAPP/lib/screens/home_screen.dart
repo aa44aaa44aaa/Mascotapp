@@ -231,6 +231,8 @@ class HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       endDrawer: _buildDrawer(),
+      drawerEdgeDragWidth:
+          MediaQuery.of(context).size.width, // Swipe para abrir drawer
       appBar: AppBar(
         title: const Text('MascotAPP'),
         automaticallyImplyLeading: false,

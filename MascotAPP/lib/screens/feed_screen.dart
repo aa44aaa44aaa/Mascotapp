@@ -522,7 +522,7 @@ class _FeedScreenState extends State<FeedScreen> {
                     child: const Text('Comentar'),
                   ),
                   Expanded(
-                    child: _buildFullCommentsSection(postId),
+                    child: _buildFullCommentsSection(postId, postOwnerId),
                   ),
                 ],
               ),
@@ -615,113 +615,157 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
-  Widget _buildFullCommentsSection(String postId) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _firestore
-          .collection('posts')
-          .doc(postId)
-          .collection('comments')
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+  Widget _buildFullCommentsSection(String postId, String postOwnerId) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: _firestore.collection('users').doc(currentUser!.uid).get(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        var comments = snapshot.data!.docs;
+        var currentUserData = userSnapshot.data!.data() as Map<String, dynamic>;
+        String currentUserRole =
+            currentUserData['rol'] ?? 'user';
 
-        return ListView.builder(
-          itemCount: comments.length,
-          itemBuilder: (context, index) {
-            var comment = comments[index].data() as Map<String, dynamic>;
-            return FutureBuilder<DocumentSnapshot>(
-              future:
-                  _firestore.collection('users').doc(comment['userId']).get(),
-              builder: (context, userSnapshot) {
-                if (!userSnapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                var user = userSnapshot.data!.data() as Map<String, dynamic>;
-                var timeAgo = timeago.format(
-                    (comment['timestamp'] as Timestamp).toDate(),
-                    locale: 'es');
+        return StreamBuilder<QuerySnapshot>(
+          stream: _firestore
+              .collection('posts')
+              .doc(postId)
+              .collection('comments')
+              .orderBy('timestamp', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                // Aquí obtenemos la URL de la imagen de perfil y la mostramos
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  UserProfileScreen(userId: comment['userId']),
+            var comments = snapshot.data!.docs;
+
+            return ListView.builder(
+              itemCount: comments.length,
+              itemBuilder: (context, index) {
+                var comment = comments[index].data() as Map<String, dynamic>;
+                return FutureBuilder<DocumentSnapshot>(
+                  future: _firestore
+                      .collection('users')
+                      .doc(comment['userId'])
+                      .get(),
+                  builder: (context, userSnapshot) {
+                    if (!userSnapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    var user =
+                        userSnapshot.data!.data() as Map<String, dynamic>;
+                    var timeAgo = timeago.format(
+                      (comment['timestamp'] as Timestamp).toDate(),
+                      locale: 'es',
+                    );
+
+                    // Verifica si el usuario actual es el autor del comentario, el dueño del post o un administrador.
+                    bool isCommentOwner = currentUser.uid == comment['userId'];
+                    bool isPostOwner = currentUser.uid == postOwnerId;
+                    bool isAdmin =
+                        currentUserRole == 'admin'; // Verifica el rol
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UserProfileScreen(
+                                      userId: comment['userId']),
+                                ),
+                              );
+                            },
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundImage:
+                                  NetworkImage(user['profileImageUrl']),
                             ),
-                          );
-                        },
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundImage:
-                              NetworkImage(user['profileImageUrl']),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              UserProfileScreen(
-                                                  userId: comment['userId']),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  UserProfileScreen(
+                                                      userId:
+                                                          comment['userId']),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          '@${user['username']}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
                                         ),
-                                      );
-                                    },
-                                    child: Text(
-                                      '@${user['username']}',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
                                       ),
-                                    ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        comment['comment'],
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        timeAgo,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    comment['comment'],
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  Text(
-                                    timeAgo,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          if (isCommentOwner || isPostOwner || isAdmin)
+                            PopupMenuButton<String>(
+                              onSelected: (value) async {
+                                if (value == 'delete') {
+                                  await _deleteComment(
+                                      postId, comments[index].id);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) {
+                                return [
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Eliminar'),
+                                  ),
+                                ];
+                              },
+                            ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             );
@@ -729,6 +773,16 @@ class _FeedScreenState extends State<FeedScreen> {
         );
       },
     );
+  }
+
+// Método para eliminar el comentario
+  Future<void> _deleteComment(String postId, String commentId) async {
+    await _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .doc(commentId)
+        .delete();
   }
 
   void _deletePost(String postId) async {

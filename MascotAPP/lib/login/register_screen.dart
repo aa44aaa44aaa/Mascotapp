@@ -421,6 +421,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                 if (value!.isEmpty) return 'Ingresa tu nombre de usuario';
                 if (value.length < 2 || value.length > 30)
                   return 'El nombre de usuario debe tener entre 2 y 30 caracteres';
+                if (value.contains(' '))
+                  return 'El nombre de usuario no puede contener espacios';
                 return null;
               },
             ),
