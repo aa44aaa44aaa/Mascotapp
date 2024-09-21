@@ -143,6 +143,8 @@ class _RegisterScreenState extends State<RegisterScreen>
           'birthDate': birthDate,
           'email': email,
           'profileImageUrl': imageUrl,
+          'rol': 'user',
+          'verified': 'False',
         });
 
         ScaffoldMessenger.of(context).showSnackBar(

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'user_edit.dart'; // Importar la pantalla de edición de perfil
 import '../pets/pet_profile.dart'; // Importar la pantalla del perfil de la mascota
+import '../admin/user_edit.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;
@@ -21,12 +22,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String? profileImageUrl, username, profileName, bio, userRole;
   List<DocumentSnapshot>? pets;
   bool isOwner = false;
+  bool isAdmin = false; // Para verificar si el usuario actual es administrador
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
     _loadUserPets();
+    _checkIfAdmin(); // Verificar si el usuario actual es administrador
   }
 
   Future<void> _loadUserProfile() async {
@@ -40,6 +43,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       bio = userDoc['bio'];
       userRole = userDoc['rol'];
       isOwner = userId == _auth.currentUser!.uid;
+    });
+  }
+
+  Future<void> _checkIfAdmin() async {
+    // Verificar si el usuario actual es administrador
+    String currentUserId = _auth.currentUser!.uid;
+    DocumentSnapshot currentUserDoc =
+        await _firestore.collection('users').doc(currentUserId).get();
+    setState(() {
+      isAdmin = currentUserDoc['rol'] ==
+          'admin'; // Verifica el rol del usuario actual
     });
   }
 
@@ -63,11 +77,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     ).then((_) => _loadUserProfile());
   }
 
+  void _navigateToAdminEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserAdminEditScreen(userId: widget.userId!),
+      ),
+    ).then((_) => _loadUserProfile());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('@$username'),
+        actions: [
+          if (isAdmin &&
+              !isOwner) // Mostrar el shield rojo si es administrador y no es el dueño
+            IconButton(
+              icon: const Icon(Icons.verified_user, color: Colors.red),
+              onPressed:
+                  _navigateToAdminEditProfile, // Navegar a la pantalla de edición de admin
+            ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
