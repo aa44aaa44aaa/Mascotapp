@@ -99,7 +99,7 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
       final NotificationService notificationService = NotificationService();
       await notificationService.sendCustomNotification(
         'Recibimos tu solicitud para ser refugio! El equipo de MascotAPP está revisandola.',
-        '0xe18d', // Código del icono de pets
+        '1', // Código del icono de pets
         _uid!,
       );
 

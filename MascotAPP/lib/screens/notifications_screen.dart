@@ -15,6 +15,19 @@ class NotificationsScreen extends StatelessWidget {
     timeago.setLocaleMessages('es', timeago_es.EsMessages());
   }
 
+  IconData _getIconForNotification(String iconCode) {
+    switch (iconCode) {
+      case '1':
+        return Icons.pets; // Ícono de patita
+      case '2':
+        return Icons.mail; // Ícono de correo
+      case '3':
+        return Icons.group; // Ícono de dos personas
+      default:
+        return Icons.notification_important; // Ícono por defecto si no coincide
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     User? user = _auth.currentUser;
@@ -140,10 +153,7 @@ class NotificationsScreen extends StatelessWidget {
                     if (notificationData['type'] == 'custom') {
                       return ListTile(
                         leading: Icon(
-                          IconData(
-                            int.parse(notificationData['icon']),
-                            fontFamily: 'MaterialIcons',
-                          ),
+                          _getIconForNotification(notificationData['icon']),
                           size: 40,
                         ),
                         title: Text(notificationData['text']),

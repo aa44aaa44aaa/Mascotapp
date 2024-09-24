@@ -14,11 +14,10 @@ import 'pets_screen.dart';
 import 'feed_screen.dart';
 import 'adoptar_screen.dart';
 import 'pending_posts_screen.dart';
-import '../admin/optimize_feed_screen.dart';
-import '../admin/optimize_user_screen.dart';
-import '../admin/optimize_pet_screen.dart';
 import '../admin/solicitudes_refugio_screen.dart';
 import 'mini_games_screen.dart';
+import '../admin/user_finder.dart';
+import '../admin/mascota_finder.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -174,7 +173,12 @@ class HomeScreenState extends State<HomeScreen> {
     if (_isPetOwner) {
       await _loadPendingPosts();
     }
-    setState(() {});
+    _loadAdoptionRequests();
+    _loadAdoptionFreshRequests();
+    // Aquí se invoca setState para reconstruir el widget con los nuevos datos
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _logout() async {
@@ -407,6 +411,7 @@ class HomeScreenState extends State<HomeScreen> {
               child: _screens[_selectedIndex],
             )
           : _screens[_selectedIndex],
+
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -485,12 +490,12 @@ class HomeScreenState extends State<HomeScreen> {
           if (userRole == 'admin')
             ListTile(
               leading: const Icon(Icons.shield, color: Colors.red),
-              title: const Text('Optimización de imágenes (Feed)'),
+              title: const Text('Buscador de usuarios'),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ImageFeedOptimizationScreen(),
+                    builder: (context) => UserSearchScreen(),
                   ),
                 );
               },
@@ -498,27 +503,12 @@ class HomeScreenState extends State<HomeScreen> {
           if (userRole == 'admin')
             ListTile(
               leading: const Icon(Icons.shield, color: Colors.red),
-              title: const Text('Optimización de imágenes (Foto Perfil)'),
+              title: const Text('Buscador de mascotas'),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        const ProfileImageOptimizationScreen(),
-                  ),
-                );
-              },
-            ),
-          if (userRole == 'admin')
-            ListTile(
-              leading: const Icon(Icons.shield, color: Colors.red),
-              title:
-                  const Text('Optimización de imágenes (Foto Perfil Mascotas)'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PetImageOptimizationScreen(),
+                    builder: (context) => PetSearchScreen(),
                   ),
                 );
               },

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import '../services/validations_service.dart';
+import '../services/notification_service.dart'; // Importa el servicio de notificaciones
 
 class ApplyAdoptScreen extends StatefulWidget {
   final String petId;
@@ -38,6 +39,20 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
     super.dispose();
   }
 
+  Future<void> _sendAdoptNotification(
+      String idSolicitante, String petName) async {
+    try {
+      final NotificationService notificationService = NotificationService();
+      await notificationService.sendCustomNotification(
+        'Enviaste una solicitud de adopción para $petName',
+        '1',
+        idSolicitante,
+      );
+    } catch (e) {
+      print("Error sending notification: $e");
+    }
+  }
+
   Future<void> _checkExistingRequest() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -54,8 +69,16 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
     }
   }
 
-  Future<void> _submitForm() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+  Future<void> _submitForm(String petNameNotifica) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      _showMessage(
+          'No se pudo obtener la información del usuario. Por favor, inicia sesión.');
+      return;
+    }
+
+    final userId = user.uid;
     final petRef =
         FirebaseFirestore.instance.collection('pets').doc(widget.petId);
     final petData = await petRef.get();
@@ -72,6 +95,8 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
       'revisado': false,
       'fecsolicitud': Timestamp.now(),
     });
+
+    await _sendAdoptNotification(userId, petNameNotifica);
 
     _showMessage(
         'Hemos enviado tus datos al refugio, espera a que te contacten.');
@@ -252,7 +277,7 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
                       ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            _submitForm();
+                            _submitForm(pet['petName']);
                           }
                         },
                         child: const Text('Enviar Solicitud'),

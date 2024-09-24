@@ -83,7 +83,7 @@ class _RefugeRequestsScreenState extends State<RefugeRequestsScreen> {
       final NotificationService notificationService = NotificationService();
       await notificationService.sendCustomNotification(
         'Felicitaciones! Tu solicitud para ser refugio fue aprobada. Gracias por ser parte de esto ❤️',
-        '0xe3a3',
+        '2',
         idSolicitante,
       );
     } catch (e) {

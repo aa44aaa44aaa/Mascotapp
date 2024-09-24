@@ -7,6 +7,7 @@ import '../posts/create_post_friend.dart';
 import '../user/user_profile.dart';
 import '../posts/single_post_screen.dart';
 import '../applications/applyadopt_screen.dart';
+import '../admin/mascota_edit.dart';
 
 class PetProfileScreen extends StatefulWidget {
   final String petId;
@@ -20,7 +21,11 @@ class PetProfileScreen extends StatefulWidget {
 class _PetProfileScreenState extends State<PetProfileScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? currentUser;
+  bool isOwner = false;
+  bool isAdmin = false;
 
   @override
   void initState() {
@@ -30,6 +35,18 @@ class _PetProfileScreenState extends State<PetProfileScreen>
       vsync: this,
     )..repeat();
     _getCurrentUser(); // Llamar a la función para obtener el usuario actual
+    _checkIfAdmin(); // Verificar si el usuario actual es administrador
+  }
+
+  Future<void> _checkIfAdmin() async {
+    // Verificar si el usuario actual es administrador
+    String currentUserId = _auth.currentUser!.uid;
+    DocumentSnapshot currentUserDoc =
+        await _firestore.collection('users').doc(currentUserId).get();
+    setState(() {
+      isAdmin = currentUserDoc['rol'] ==
+          'admin'; // Verifica el rol del usuario actual
+    });
   }
 
   Future<void> _getCurrentUser() async {
@@ -64,11 +81,30 @@ class _PetProfileScreenState extends State<PetProfileScreen>
     );
   }
 
+  void _navigateToAdminEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PetAdminEditScreen(
+          petId: widget.petId, // Aquí ya tienes el petId definido en el widget
+          userId: currentUser!.uid, // Pasas el userId del administrador actual
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Perfil de Mascota'),
+        actions: [
+          if (isAdmin && !isOwner)
+            IconButton(
+              icon: const Icon(Icons.verified_user, color: Colors.red),
+              onPressed: _navigateToAdminEditProfile,
+            ),
+        ],
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
@@ -203,6 +239,7 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                           const SizedBox(width: 8),
                           const Tooltip(
                             message: 'Mascota Verificada',
+                            triggerMode: TooltipTriggerMode.tap,
                             child: Icon(Icons.verified,
                                 color: Colors.blue, size: 24),
                           ),

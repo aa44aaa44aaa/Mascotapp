@@ -425,6 +425,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                   return 'El nombre de usuario debe tener entre 2 y 30 caracteres';
                 if (value.contains(' '))
                   return 'El nombre de usuario no puede contener espacios';
+                if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value))
+                  return 'El nombre de usuario solo puede contener letras, números y guion bajo';
                 return null;
               },
             ),

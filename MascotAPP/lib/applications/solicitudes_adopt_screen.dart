@@ -52,7 +52,7 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
       final NotificationService notificationService = NotificationService();
       await notificationService.sendCustomNotification(
         'Tu solicitud de adopción para $petName ha sido revisada, espera a ser contactado.',
-        '0xe3a3',
+        '1',
         idSolicitante,
       );
     } catch (e) {
