@@ -8,6 +8,7 @@ import '../user/user_profile.dart';
 import '../posts/single_post_screen.dart';
 import '../applications/applyadopt_screen.dart';
 import '../admin/mascota_edit.dart';
+import '../services/notification_service.dart';
 
 class PetProfileScreen extends StatefulWidget {
   final String petId;
@@ -21,6 +22,7 @@ class PetProfileScreen extends StatefulWidget {
 class _PetProfileScreenState extends State<PetProfileScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final NotificationService _notificationService = NotificationService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? currentUser;
@@ -63,11 +65,14 @@ class _PetProfileScreenState extends State<PetProfileScreen>
   }
 
   Future<void> _toggleFanStatus() async {
-    String currentUserId = _auth.currentUser!.uid;
+    String currentUserId = _auth.currentUser!.uid; // ID del usuario actual
     DocumentSnapshot petDoc =
         await _firestore.collection('pets').doc(widget.petId).get();
-    List fans = petDoc['fans'] ??
-        []; // Si el campo no existe, inicializar como una lista vacía
+    List fans = petDoc['fans'] ?? []; // Lista de fans actual
+
+    // Obtener el nombre de la mascota para usarlo en la notificación
+    String petName =
+        petDoc['petName'] ?? 'La mascota'; // Asegurarse de que el nombre exista
 
     if (fans.contains(currentUserId)) {
       // Si ya es fan, lo eliminamos de la lista
@@ -79,9 +84,17 @@ class _PetProfileScreenState extends State<PetProfileScreen>
       await _firestore.collection('pets').doc(widget.petId).update({
         'fans': FieldValue.arrayUnion([currentUserId]),
       });
+
+      // Enviar la notificación con el nombre de la mascota
+      await _notificationService.sendFanNotification(
+          petDoc['owner'], // ID del propietario de la mascota como destinatario
+          "$petName tiene un nuevo fan!", // Texto de la notificación
+          widget.petId, // ID de la mascota
+          currentUserId // ID del remitente (usuario actual)
+          );
     }
 
-    setState(() {});
+    setState(() {}); // Actualiza el estado para reflejar cambios en la UI
   }
 
   void _showMessage(String message) {

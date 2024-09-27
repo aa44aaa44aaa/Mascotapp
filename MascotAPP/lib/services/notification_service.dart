@@ -77,4 +77,29 @@ class NotificationService {
       });
     }
   }
+
+  Future<void> sendFanNotification(String recipientId, String text,
+      String mascotaId, String senderId) async {
+    final notificationRef = _firestore.collection('notifications');
+
+    final existingCustomNotification = await notificationRef
+        .where('recipient', isEqualTo: recipientId)
+        .where('senderId', isEqualTo: senderId)
+        .where('text', isEqualTo: text)
+        .where('type', isEqualTo: 'fan')
+        .limit(1)
+        .get();
+
+    if (existingCustomNotification.docs.isEmpty) {
+      await notificationRef.add({
+        'recipient': recipientId,
+        'type': 'fan',
+        'text': text,
+        'MascotaId': mascotaId,
+        'sender': senderId,
+        'isRead': false,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    }
+  }
 }
