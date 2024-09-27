@@ -421,8 +421,8 @@ class _RegisterScreenState extends State<RegisterScreen>
               onSaved: (value) => username = value,
               validator: (value) {
                 if (value!.isEmpty) return 'Ingresa tu nombre de usuario';
-                if (value.length < 2 || value.length > 30)
-                  return 'El nombre de usuario debe tener entre 2 y 30 caracteres';
+                if (value.length < 2 || value.length > 20)
+                  return 'El nombre de usuario debe tener entre 2 y 20 caracteres';
                 if (value.contains(' '))
                   return 'El nombre de usuario no puede contener espacios';
                 if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value))

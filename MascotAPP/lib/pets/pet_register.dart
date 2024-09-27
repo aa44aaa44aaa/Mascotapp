@@ -268,11 +268,15 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
             decoration: const InputDecoration(labelText: 'Nombre de mascota'),
             onSaved: (value) => petName = value,
             validator: (value) {
-              if (value!.isEmpty) return 'Ingresa el nombre de tu mascota';
+              if (value == null || value.isEmpty) {
+                return 'Ingresa el nombre de tu mascota';
+              } else if (value.length < 2 || value.length > 30) {
+                return 'El nombre debe tener entre 2 y 30 caracteres';
+              }
               return null;
             },
           ),
-        ),
+        )
       ],
     );
   }
@@ -307,7 +311,12 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
               return TextFormField(
                 controller: textEditingController,
                 focusNode: focusNode,
-                decoration: const InputDecoration(labelText: 'Especie'),
+                decoration: const InputDecoration(
+                  labelText: 'Especie',
+                  counterText:
+                      '', // Oculta el contador de caracteres si no lo necesitas
+                ),
+                maxLength: 30, // Limita el campo a 30 caracteres
                 onSaved: (value) => petType = value,
                 validator: (value) {
                   if (value!.isEmpty) return 'Ingresa la especie de tu mascota';
