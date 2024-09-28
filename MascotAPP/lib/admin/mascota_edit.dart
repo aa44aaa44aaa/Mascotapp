@@ -174,12 +174,45 @@ class _PetAdminEditScreenState extends State<PetAdminEditScreen> {
 
   Future<void> _deletePet() async {
     try {
-      await _firestore.collection('pets').doc(widget.petId).delete();
+      // Iniciar una referencia a la colección de 'posts' de la mascota
+      final QuerySnapshot petPostsSnapshot = await _firestore
+          .collection('posts')
+          .where('petId', isEqualTo: widget.petId)
+          .get();
+
+      WriteBatch batch = _firestore.batch(); // Batch de Firestore
+
+      // Iterar sobre cada post relacionado con la mascota
+      for (DocumentSnapshot doc in petPostsSnapshot.docs) {
+        final postData = doc.data() as Map<String, dynamic>;
+
+        // Verificar si el post tiene una imagen y eliminarla de Firebase Storage
+        if (postData['postImageUrl'] != null &&
+            postData['postImageUrl'].isNotEmpty) {
+          final String imageUrl = postData['postImageUrl'];
+          final Reference imageRef =
+              FirebaseStorage.instance.refFromURL(imageUrl);
+
+          await imageRef.delete(); // Eliminar la imagen de Firebase Storage
+        }
+
+        // Eliminar el post del batch
+        batch.delete(doc.reference);
+      }
+
+      // Eliminar la mascota
+      batch.delete(_firestore.collection('pets').doc(widget.petId));
+
+      // Commit del batch (eliminar mascota y posts)
+      await batch.commit();
+
+      // Mostrar mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: AwesomeSnackbarContent(
             title: 'Eliminado',
-            message: 'Mascota eliminada correctamente',
+            message:
+                'Mascota, sus posts y sus imágenes eliminados correctamente',
             contentType: ContentType.failure,
           ),
           backgroundColor: Colors.transparent,
@@ -187,6 +220,8 @@ class _PetAdminEditScreenState extends State<PetAdminEditScreen> {
           elevation: 0,
         ),
       );
+
+      // Volver a la pantalla anterior
       Navigator.of(context).pop();
     } catch (e) {
       print(e);

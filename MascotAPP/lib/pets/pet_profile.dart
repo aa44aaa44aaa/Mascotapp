@@ -8,6 +8,7 @@ import '../user/user_profile.dart';
 import '../posts/single_post_screen.dart';
 import '../applications/applyadopt_screen.dart';
 import '../admin/mascota_edit.dart';
+import 'edit_pet.dart';
 import '../services/notification_service.dart';
 
 class PetProfileScreen extends StatefulWidget {
@@ -53,8 +54,14 @@ class _PetProfileScreenState extends State<PetProfileScreen>
 
   Future<void> _getCurrentUser() async {
     User? user = FirebaseAuth.instance.currentUser;
+    DocumentSnapshot petDoc =
+        await _firestore.collection('pets').doc(widget.petId).get();
+    String ownerId = petDoc['owner'];
+
     setState(() {
       currentUser = user;
+      isOwner = user != null &&
+          user.uid == ownerId; // Verifica si el usuario es el dueño
     });
   }
 
@@ -128,6 +135,17 @@ class _PetProfileScreenState extends State<PetProfileScreen>
     );
   }
 
+  void _navigateToOwnerEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPetScreen(
+          petId: widget.petId, // Aquí ya tienes el petId definido en el widget
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,6 +156,11 @@ class _PetProfileScreenState extends State<PetProfileScreen>
             IconButton(
               icon: const Icon(Icons.verified_user, color: Colors.red),
               onPressed: _navigateToAdminEditProfile,
+            ),
+          if (isOwner)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: _navigateToOwnerEditProfile,
             ),
         ],
       ),
