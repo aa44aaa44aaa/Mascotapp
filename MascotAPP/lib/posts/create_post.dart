@@ -145,14 +145,28 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         print(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: AwesomeSnackbarContent(
+              title: 'Error',
+              message: '$e',
+              contentType: ContentType.failure,
+            ),
           ),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona una imagen.'),
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          content: AwesomeSnackbarContent(
+            title: 'Error',
+            message: 'Por favor selecciona una imagen.',
+            contentType: ContentType.failure,
+          ),
         ),
       );
     }

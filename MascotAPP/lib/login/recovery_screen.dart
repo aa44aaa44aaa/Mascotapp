@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/validations_service.dart';
 import 'dart:async'; // Para usar el temporizador
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class RecoveryScreen extends StatefulWidget {
   const RecoveryScreen({super.key});
@@ -39,7 +40,14 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
         await _auth.sendPasswordResetEmail(email: email);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Se ha enviado un enlace a $email'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: AwesomeSnackbarContent(
+              title: 'Enlace enviado!',
+              message: 'Se ha enviado un enlace a $email',
+              contentType: ContentType.success,
+            ),
           ),
         );
 
@@ -58,7 +66,14 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.message}'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              content: AwesomeSnackbarContent(
+                title: 'Error',
+                message: '${e.message}',
+                contentType: ContentType.failure,
+              ),
             ),
           );
         }
@@ -66,7 +81,14 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
         print(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: AwesomeSnackbarContent(
+              title: 'Error',
+              message: '$e',
+              contentType: ContentType.failure,
+            ),
           ),
         );
       }

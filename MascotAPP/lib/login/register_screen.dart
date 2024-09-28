@@ -149,9 +149,9 @@ class _RegisterScreenState extends State<RegisterScreen>
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: Colors.transparent,
             behavior: SnackBarBehavior.floating,
-            elevation: 1,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             content: AwesomeSnackbarContent(
               title: 'Verificación',
               message: 'Necesitamos verificarte, revisa tu correo',
@@ -170,6 +170,9 @@ class _RegisterScreenState extends State<RegisterScreen>
               message: 'Error: $e',
               contentType: ContentType.failure,
             ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
           ),
         );
       } finally {
@@ -183,8 +186,8 @@ class _RegisterScreenState extends State<RegisterScreen>
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: Colors.transparent,
           behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
           elevation: 0,
           content: AwesomeSnackbarContent(
             title: 'Información faltante',
@@ -229,6 +232,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                 message: 'Este correo ya está en uso',
                 contentType: ContentType.failure,
               ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
             ),
           );
           return;
@@ -243,6 +249,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                 message: 'Este nombre de usuario ya está en uso',
                 contentType: ContentType.failure,
               ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
             ),
           );
           return;

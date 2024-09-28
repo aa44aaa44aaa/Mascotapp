@@ -230,15 +230,15 @@ class NotificationsScreen extends StatelessWidget {
                                 : const Icon(Icons
                                     .pets), // Icono por defecto si no hay imagen
                             onTap: () {
-                            // Navegar al perfil de la mascota al hacer clic
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    PetProfileScreen(petId: notificationData['MascotaId']),
-                              ),
-                            );
-                          },
+                              // Navegar al perfil de la mascota al hacer clic
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PetProfileScreen(
+                                      petId: notificationData['MascotaId']),
+                                ),
+                              );
+                            },
                           );
                         },
                       );

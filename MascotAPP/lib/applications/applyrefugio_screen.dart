@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/notification_service.dart';
 import '../services/validations_service.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class ApplyRefugioScreen extends StatefulWidget {
   const ApplyRefugioScreen({super.key});
@@ -92,7 +93,16 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Solicitud enviada con éxito!')),
+        SnackBar(
+          content: AwesomeSnackbarContent(
+            title: 'Exito',
+            message: 'Solicitud enviada con éxito!',
+            contentType: ContentType.success,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
       );
 
       // Enviar notificación personalizada

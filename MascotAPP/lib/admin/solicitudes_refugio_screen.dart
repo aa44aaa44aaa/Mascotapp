@@ -6,6 +6,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../services/functions_services.dart'; // Importa el servicio de funciones
 import '../services/notification_service.dart';
 import '../user/user_profile.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class RefugeRequestsScreen extends StatefulWidget {
   const RefugeRequestsScreen({Key? key}) : super(key: key);
@@ -100,16 +101,33 @@ class _RefugeRequestsScreenState extends State<RefugeRequestsScreen> {
           .collection('users')
           .doc(userId)
           .update({'rol': 'refugio'});
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Usuario convertido en refugio')),
+        SnackBar(
+          content: AwesomeSnackbarContent(
+            title: 'Exito!',
+            message: 'Usuario convertido en refugio',
+            contentType: ContentType.success,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
       );
       _markAsReviewed(request);
       _sendReviewNotification(userId);
     } catch (e) {
       print("Error converting to refuge: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al convertir en refugio')),
+        SnackBar(
+          content: AwesomeSnackbarContent(
+            title: 'Error al convertir en refugio',
+            message: '$e',
+            contentType: ContentType.failure,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
       );
     } finally {
       setState(() {
@@ -174,7 +192,16 @@ class _RefugeRequestsScreenState extends State<RefugeRequestsScreen> {
                     onDismissed: (direction) {
                       _deleteRequest(request.id);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Solicitud eliminada')),
+                        SnackBar(
+                          content: AwesomeSnackbarContent(
+                            title: 'Exitoso',
+                            message: 'Solicitud eliminada',
+                            contentType: ContentType.success,
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                        ),
                       );
                     },
                     child: Card(

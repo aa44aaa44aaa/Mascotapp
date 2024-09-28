@@ -47,11 +47,11 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!userCredential.user!.emailVerified) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              backgroundColor: const Color.fromARGB(0, 0, 0, 0),
               behavior: SnackBarBehavior.floating,
-              elevation: 1,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
               content: AwesomeSnackbarContent(
-                title: 'Verificación',
+                title: 'Verificación por email',
                 message: 'Necesitamos verificarte, revisa tu correo por favor',
                 contentType: ContentType.warning,
               ),
@@ -70,9 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: Colors.transparent,
             behavior: SnackBarBehavior.floating,
-            elevation: 1,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             content: AwesomeSnackbarContent(
               title: 'Error de autenticación',
               message: errorMessage,
@@ -83,7 +83,14 @@ class _LoginScreenState extends State<LoginScreen> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: AwesomeSnackbarContent(
+              title: 'Error ',
+              message: '$e',
+              contentType: ContentType.failure,
+            ),
           ),
         );
       }

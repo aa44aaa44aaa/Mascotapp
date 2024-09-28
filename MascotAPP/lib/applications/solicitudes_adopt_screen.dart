@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../services/functions_services.dart'; // Importa el servicio de funciones
 import '../services/notification_service.dart'; // Importa el servicio de notificaciones
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class AdoptionRequestsScreen extends StatefulWidget {
   const AdoptionRequestsScreen({Key? key}) : super(key: key);
@@ -140,8 +141,18 @@ class _AdoptionRequestsScreenState extends State<AdoptionRequestsScreen> {
                     ),
                     onDismissed: (direction) {
                       _deleteRequest(request.id);
+
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Solicitud eliminada')),
+                        SnackBar(
+                          content: AwesomeSnackbarContent(
+                            title: 'Exito',
+                            message: 'Solicitud eliminada con éxito!',
+                            contentType: ContentType.success,
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                        ),
                       );
                     },
                     child: FutureBuilder<Map<String, dynamic>?>(

@@ -141,7 +141,14 @@ class _CreatePostFriendScreenState extends State<CreatePostFriendScreen> {
         print(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: AwesomeSnackbarContent(
+              title: 'Error',
+              message: '$e',
+              contentType: ContentType.failure,
+            ),
           ),
         );
       }

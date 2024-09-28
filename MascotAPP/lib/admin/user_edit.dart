@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart'; // Para formatear fechas
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 class UserAdminEditScreen extends StatefulWidget {
   final String userId; // ID del usuario que será editado
@@ -89,7 +90,16 @@ class _UserAdminEditScreenState extends State<UserAdminEditScreen> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar los datos del usuario: $e')),
+        SnackBar(
+          content: AwesomeSnackbarContent(
+            title: 'Error al cargar datos de usuario',
+            message: '$e',
+            contentType: ContentType.failure,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
       );
     }
   }
@@ -117,7 +127,16 @@ class _UserAdminEditScreenState extends State<UserAdminEditScreen> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar los cambios: $e')),
+        SnackBar(
+          content: AwesomeSnackbarContent(
+            title: 'Error al guardar cambios',
+            message: '$e',
+            contentType: ContentType.failure,
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
       );
     }
   }

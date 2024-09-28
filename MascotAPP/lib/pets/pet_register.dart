@@ -174,9 +174,12 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
           SnackBar(
             content: AwesomeSnackbarContent(
               title: 'Éxito',
-              message: 'Animal registrado exitosamente.',
+              message: 'Mascota registrada exitosamente.',
               contentType: ContentType.success,
             ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
           ),
         );
 
@@ -189,6 +192,9 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
               message: 'Error: $e',
               contentType: ContentType.failure,
             ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
           ),
         );
       } finally {

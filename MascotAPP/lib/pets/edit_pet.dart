@@ -119,7 +119,14 @@ class _EditPetScreenState extends State<EditPetScreen> {
         print(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: AwesomeSnackbarContent(
+              title: 'Error',
+              message: '$e',
+              contentType: ContentType.failure,
+            ),
           ),
         );
       }
@@ -195,8 +202,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 'Mascota, sus posts y sus imágenes eliminados correctamente',
             contentType: ContentType.failure,
           ),
-          backgroundColor: Colors.transparent,
           behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
           elevation: 0,
         ),
       );
@@ -212,8 +219,8 @@ class _EditPetScreenState extends State<EditPetScreen> {
             message: 'Error: $e',
             contentType: ContentType.failure,
           ),
-          backgroundColor: Colors.transparent,
           behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
           elevation: 0,
         ),
       );
