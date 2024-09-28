@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart'; // Para formatear fechas
@@ -15,7 +14,6 @@ class UserAdminEditScreen extends StatefulWidget {
 
 class _UserAdminEditScreenState extends State<UserAdminEditScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String? profileImageUrl, username, profileName, bio, email, uid;
   String? selectedRole = 'user'; // Rol predeterminado
@@ -40,9 +38,8 @@ class _UserAdminEditScreenState extends State<UserAdminEditScreen> {
     try {
       DocumentSnapshot userDoc =
           await _firestore.collection('users').doc(widget.userId).get();
-      User? authUser = _auth.currentUser;
 
-      if (userDoc.exists && authUser != null) {
+      if (userDoc.exists) {
         Map<String, dynamic>? userData =
             userDoc.data() as Map<String, dynamic>?;
 
@@ -52,17 +49,11 @@ class _UserAdminEditScreenState extends State<UserAdminEditScreen> {
           username = userData?['username'] ?? '';
           profileName = userData?['profileName'] ?? '';
           bio = userData?['bio'] ?? '';
-          email = userData?['email'] ??
-              authUser
-                  .email; // Mostrar email desde auth si no está en Firestore
+          email = userData?['email'];
           uid = widget.userId;
           birthDate = (userData?['birthDate'] != null)
               ? (userData?['birthDate'] as Timestamp).toDate()
               : null;
-
-          // Datos del auth
-          accountCreation = authUser.metadata.creationTime;
-          lastSignIn = authUser.metadata.lastSignInTime;
 
           // Rol y verificación
           if (userData?.containsKey('rol') ?? false) {
@@ -184,23 +175,6 @@ class _UserAdminEditScreenState extends State<UserAdminEditScreen> {
                             ),
                             const SizedBox(height: 8),
                             // Mostrar información de autenticación
-                            if (accountCreation != null)
-                              Row(
-                                children: [
-                                  Icon(Icons.supervised_user_circle),
-                                  Text(
-                                      'Cuenta creada: ${DateFormat('dd/MM/yyyy').format(accountCreation!)}'),
-                                ],
-                              ),
-
-                            if (lastSignIn != null)
-                              Row(
-                                children: [
-                                  Icon(Icons.vpn_key),
-                                  Text(
-                                      'Último acceso: ${DateFormat('dd/MM/yyyy').format(lastSignIn!)}'),
-                                ],
-                              ),
                           ],
                         ),
                       ),
