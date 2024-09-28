@@ -448,7 +448,7 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                                   color: Colors.red,
                                 ),
                                 label: Text(
-                                  isFan ? 'Dejar de ser fan' : 'Ser Fan',
+                                  isFan ? 'Eres Fan' : 'Ser Fan',
                                   textAlign: TextAlign.center,
                                 ),
                               ),

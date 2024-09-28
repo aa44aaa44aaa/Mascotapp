@@ -328,7 +328,10 @@ class _RegisterScreenState extends State<RegisterScreen>
               'assets/cat.svg', // Assumed your SVG image path
               height: 100,
             ),
-            const Text('Primero, ingresa tus credenciales.'),
+            const Text(
+              'Primero, ingresa tus credenciales.\nCon estos datos iniciarás sesión en tu cuenta',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16.0),
             TextFormField(
               decoration: const InputDecoration(
@@ -403,7 +406,10 @@ class _RegisterScreenState extends State<RegisterScreen>
               'assets/profile.svg', // Assumed your SVG image path
               height: 100,
             ),
-            const Text('Ahora, creemos tu perfil!'),
+            const Text(
+              'Ahora, creemos tu perfil de dueño de mascotas!\nCon esto encontrarás a tus amig@s!',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16.0),
             TextFormField(
               decoration: InputDecoration(

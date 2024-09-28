@@ -476,56 +476,87 @@ class _FeedScreenState extends State<FeedScreen> {
   void _showCommentDialog(
       BuildContext context, String postId, String postOwnerId) {
     String comment = '';
+    bool isLoading = false; // Indicador de carga
+    final TextEditingController commentController =
+        TextEditingController(); // Controlador para el TextField
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.5,
-          minChildSize: 0.25,
-          maxChildSize: 1.0,
-          builder: (BuildContext context, ScrollController scrollController) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  TextField(
-                    onChanged: (value) {
-                      comment = value;
-                    },
-                    decoration: const InputDecoration(
-                        hintText: 'Escribe tu comentario'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (comment.isNotEmpty) {
-                        final currentUser = FirebaseAuth.instance.currentUser;
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.5,
+              minChildSize: 0.25,
+              maxChildSize: 1.0,
+              builder:
+                  (BuildContext context, ScrollController scrollController) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: commentController, // Asigna el controlador
+                        onChanged: (value) {
+                          comment = value;
+                        },
+                        enabled:
+                            !isLoading, // Desactiva el campo mientras carga
+                        decoration: const InputDecoration(
+                            hintText: 'Escribe tu comentario'),
+                      ),
+                      ElevatedButton(
+                        onPressed: isLoading
+                            ? null // Desactiva el botón cuando está cargando
+                            : () async {
+                                if (comment.isNotEmpty) {
+                                  setState(() {
+                                    isLoading =
+                                        true; // Cambia a estado de carga
+                                  });
 
-                        await _firestore
-                            .collection('posts')
-                            .doc(postId)
-                            .collection('comments')
-                            .add({
-                          'comment': comment,
-                          'timestamp': FieldValue.serverTimestamp(),
-                          'userId': currentUser!.uid,
-                        });
+                                  final currentUser =
+                                      FirebaseAuth.instance.currentUser;
 
-                        // Llama al servicio de notificación para enviar notificación de "comentario"
-                        await _notificationService.sendCommentNotification(
-                            postId, currentUser.uid, postOwnerId);
+                                  await _firestore
+                                      .collection('posts')
+                                      .doc(postId)
+                                      .collection('comments')
+                                      .add({
+                                    'comment': comment,
+                                    'timestamp': FieldValue.serverTimestamp(),
+                                    'userId': currentUser!.uid,
+                                  });
 
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: const Text('Comentar'),
+                                  // Llama al servicio de notificación para enviar notificación de "comentario"
+                                  await _notificationService
+                                      .sendCommentNotification(
+                                          postId, currentUser.uid, postOwnerId);
+
+                                  // Limpia el comentario y el campo de texto
+                                  setState(() {
+                                    isLoading =
+                                        false; // Finaliza el estado de carga
+                                    comment =
+                                        ''; // Limpia la variable del comentario
+                                    commentController
+                                        .clear(); // Limpia el campo de texto
+                                  });
+                                }
+                              },
+                        child: isLoading
+                            ? const CircularProgressIndicator() // Muestra indicador de carga
+                            : const Text('Comentar'),
+                      ),
+                      Expanded(
+                        child: _buildFullCommentsSection(postId, postOwnerId),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: _buildFullCommentsSection(postId, postOwnerId),
-                  ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
@@ -626,8 +657,7 @@ class _FeedScreenState extends State<FeedScreen> {
         }
 
         var currentUserData = userSnapshot.data!.data() as Map<String, dynamic>;
-        String currentUserRole =
-            currentUserData['rol'] ?? 'user';
+        String currentUserRole = currentUserData['rol'] ?? 'user';
 
         return StreamBuilder<QuerySnapshot>(
           stream: _firestore
@@ -659,10 +689,19 @@ class _FeedScreenState extends State<FeedScreen> {
 
                     var user =
                         userSnapshot.data!.data() as Map<String, dynamic>;
-                    var timeAgo = timeago.format(
-                      (comment['timestamp'] as Timestamp).toDate(),
-                      locale: 'es',
-                    );
+                    var timestamp = comment['timestamp'] as Timestamp?;
+
+                    // Verifica si el timestamp es nulo
+                    String timeAgo;
+                    if (timestamp != null) {
+                      timeAgo = timeago.format(
+                        timestamp.toDate(),
+                        locale: 'es',
+                      );
+                    } else {
+                      timeAgo =
+                          "Hace un momento"; // Valor por defecto si timestamp es nulo
+                    }
 
                     // Verifica si el usuario actual es el autor del comentario, el dueño del post o un administrador.
                     bool isCommentOwner = currentUser.uid == comment['userId'];

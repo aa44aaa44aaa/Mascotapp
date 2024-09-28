@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../user/user_profile.dart';
+import '../services/notification_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class SinglePostScreen extends StatefulWidget {
   final String postId;
@@ -17,6 +19,7 @@ class SinglePostScreen extends StatefulWidget {
 class _SinglePostScreenState extends State<SinglePostScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final currentUser = FirebaseAuth.instance.currentUser;
+  final NotificationService _notificationService = NotificationService();
 
   late Future<DocumentSnapshot> postFuture;
   bool inAdoption = false;
@@ -27,8 +30,10 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
     postFuture = _firestore.collection('posts').doc(widget.postId).get();
   }
 
-  void _toggleLikePost(String postId, String userId, bool likedByCurrentUser, String postOwnerId) async {
+  void _toggleLikePost(String postId, String userId, bool likedByCurrentUser,
+      String postOwnerId) async {
     final postRef = _firestore.collection('posts').doc(postId);
+
     if (likedByCurrentUser) {
       await postRef.update({
         'likes': FieldValue.arrayRemove([userId]),
@@ -38,72 +43,97 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
         'likes': FieldValue.arrayUnion([userId]),
       });
 
-      await _firestore.collection('notifications').add({
-        'recipient': postOwnerId,
-        'type': 'like',
-        'postId': postId,
-        'sender': userId,
-        'isRead': false,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      // Llama al servicio de notificación para enviar notificación de "like"
+      await _notificationService.sendLikeNotification(
+          postId, userId, postOwnerId);
     }
-    setState(() {
-      postFuture = _firestore.collection('posts').doc(widget.postId).get();
-    });
+    setState(() {});
   }
 
-  void _showCommentDialog(BuildContext context, String postId, String postOwnerId) {
+  void _showCommentDialog(
+      BuildContext context, String postId, String postOwnerId) {
     String comment = '';
+    bool isLoading = false; // Indicador de carga
+    final TextEditingController commentController =
+        TextEditingController(); // Controlador para el TextField
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.5,
-          minChildSize: 0.25,
-          maxChildSize: 1.0,
-          builder: (BuildContext context, ScrollController scrollController) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  TextField(
-                    onChanged: (value) {
-                      comment = value;
-                    },
-                    decoration: const InputDecoration(hintText: 'Enter your comment'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (comment.isNotEmpty) {
-                        final currentUser = FirebaseAuth.instance.currentUser;
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.5,
+              minChildSize: 0.25,
+              maxChildSize: 1.0,
+              builder:
+                  (BuildContext context, ScrollController scrollController) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: commentController, // Asigna el controlador
+                        onChanged: (value) {
+                          comment = value;
+                        },
+                        enabled:
+                            !isLoading, // Desactiva el campo mientras carga
+                        decoration: const InputDecoration(
+                            hintText: 'Escribe tu comentario'),
+                      ),
+                      ElevatedButton(
+                        onPressed: isLoading
+                            ? null // Desactiva el botón cuando está cargando
+                            : () async {
+                                if (comment.isNotEmpty) {
+                                  setState(() {
+                                    isLoading =
+                                        true; // Cambia a estado de carga
+                                  });
 
-                        await _firestore.collection('posts').doc(postId).collection('comments').add({
-                          'comment': comment,
-                          'timestamp': FieldValue.serverTimestamp(),
-                          'userId': currentUser!.uid,
-                        });
+                                  final currentUser =
+                                      FirebaseAuth.instance.currentUser;
 
-                        await _firestore.collection('notifications').add({
-                          'recipient': postOwnerId,
-                          'type': 'comment',
-                          'postId': postId,
-                          'sender': currentUser.uid,
-                          'isRead': false,
-                          'timestamp': FieldValue.serverTimestamp(),
-                        });
+                                  await _firestore
+                                      .collection('posts')
+                                      .doc(postId)
+                                      .collection('comments')
+                                      .add({
+                                    'comment': comment,
+                                    'timestamp': FieldValue.serverTimestamp(),
+                                    'userId': currentUser!.uid,
+                                  });
 
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: const Text('Submit'),
+                                  // Llama al servicio de notificación para enviar notificación de "comentario"
+                                  await _notificationService
+                                      .sendCommentNotification(
+                                          postId, currentUser.uid, postOwnerId);
+
+                                  // Limpia el comentario y el campo de texto
+                                  setState(() {
+                                    isLoading =
+                                        false; // Finaliza el estado de carga
+                                    comment =
+                                        ''; // Limpia la variable del comentario
+                                    commentController
+                                        .clear(); // Limpia el campo de texto
+                                  });
+                                }
+                              },
+                        child: isLoading
+                            ? const CircularProgressIndicator() // Muestra indicador de carga
+                            : const Text('Comentar'),
+                      ),
+                      Expanded(
+                        child: _buildFullCommentsSection(postId, postOwnerId),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: _buildFullCommentsSection(postId),
-                  ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
@@ -113,7 +143,13 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
 
   Widget _buildCommentsSection(String postId) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection('posts').doc(postId).collection('comments').orderBy('timestamp', descending: true).limit(2).snapshots(),
+      stream: _firestore
+          .collection('posts')
+          .doc(postId)
+          .collection('comments')
+          .orderBy('timestamp', descending: true)
+          .limit(2)
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -128,15 +164,56 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
           itemBuilder: (context, index) {
             var comment = comments[index].data() as Map<String, dynamic>;
             return FutureBuilder<DocumentSnapshot>(
-              future: _firestore.collection('users').doc(comment['userId']).get(),
+              future:
+                  _firestore.collection('users').doc(comment['userId']).get(),
               builder: (context, userSnapshot) {
                 if (!userSnapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 var user = userSnapshot.data!.data() as Map<String, dynamic>;
-                return ListTile(
-                  title: Text(comment['comment']),
-                  subtitle: Text('@${user['username']}'),
+
+                // Aquí obtenemos la URL de la imagen de perfil y la mostramos
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '@${user['username']}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    comment['comment'],
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             );
@@ -146,30 +223,165 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
     );
   }
 
-  Widget _buildFullCommentsSection(String postId) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection('posts').doc(postId).collection('comments').orderBy('timestamp', descending: true).snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+  Widget _buildFullCommentsSection(String postId, String postOwnerId) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: _firestore.collection('users').doc(currentUser!.uid).get(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        var comments = snapshot.data!.docs;
+        var currentUserData = userSnapshot.data!.data() as Map<String, dynamic>;
+        String currentUserRole = currentUserData['rol'] ?? 'user';
 
-        return ListView.builder(
-          itemCount: comments.length,
-          itemBuilder: (context, index) {
-            var comment = comments[index].data() as Map<String, dynamic>;
-            return FutureBuilder<DocumentSnapshot>(
-              future: _firestore.collection('users').doc(comment['userId']).get(),
-              builder: (context, userSnapshot) {
-                if (!userSnapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                var user = userSnapshot.data!.data() as Map<String, dynamic>;
-                return ListTile(
-                  title: Text(comment['comment']),
-                  subtitle: Text('@${user['username']}'),
+        return StreamBuilder<QuerySnapshot>(
+          stream: _firestore
+              .collection('posts')
+              .doc(postId)
+              .collection('comments')
+              .orderBy('timestamp', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            var comments = snapshot.data!.docs;
+
+            return ListView.builder(
+              itemCount: comments.length,
+              itemBuilder: (context, index) {
+                var comment = comments[index].data() as Map<String, dynamic>;
+                return FutureBuilder<DocumentSnapshot>(
+                  future: _firestore
+                      .collection('users')
+                      .doc(comment['userId'])
+                      .get(),
+                  builder: (context, userSnapshot) {
+                    if (!userSnapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    var user =
+                        userSnapshot.data!.data() as Map<String, dynamic>;
+                    var timestamp = comment['timestamp'] as Timestamp?;
+
+                    // Verifica si el timestamp es nulo
+                    String timeAgo;
+                    if (timestamp != null) {
+                      timeAgo = timeago.format(
+                        timestamp.toDate(),
+                        locale: 'es',
+                      );
+                    } else {
+                      timeAgo =
+                          "Hace un momento"; // Valor por defecto si timestamp es nulo
+                    }
+
+                    // Verifica si el usuario actual es el autor del comentario, el dueño del post o un administrador.
+                    bool isCommentOwner = currentUser.uid == comment['userId'];
+                    bool isPostOwner = currentUser.uid == postOwnerId;
+                    bool isAdmin =
+                        currentUserRole == 'admin'; // Verifica el rol
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UserProfileScreen(
+                                      userId: comment['userId']),
+                                ),
+                              );
+                            },
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundImage:
+                                  NetworkImage(user['profileImageUrl']),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  UserProfileScreen(
+                                                      userId:
+                                                          comment['userId']),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          '@${user['username']}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        comment['comment'],
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        timeAgo,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isCommentOwner || isPostOwner || isAdmin)
+                            PopupMenuButton<String>(
+                              onSelected: (value) async {
+                                if (value == 'delete') {
+                                  await _deleteComment(
+                                      postId, comments[index].id);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) {
+                                return [
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Eliminar'),
+                                  ),
+                                ];
+                              },
+                            ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             );
@@ -177,6 +389,15 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
         );
       },
     );
+  }
+
+  Future<void> _deleteComment(String postId, String commentId) async {
+    await _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .doc(commentId)
+        .delete();
   }
 
   @override
@@ -219,7 +440,8 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  var owner = ownerSnapshot.data!.data() as Map<String, dynamic>;
+                  var owner =
+                      ownerSnapshot.data!.data() as Map<String, dynamic>;
 
                   String formattedDate = DateFormat('dd-MM-yyyy HH:mm')
                       .format(post['timestamp'].toDate());
@@ -237,14 +459,18 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => UserProfileScreen(userId: postedBy),
+                                        builder: (context) =>
+                                            UserProfileScreen(userId: postedBy),
                                       ),
                                     );
                                   },
                                   child: CircleAvatar(
                                     backgroundImage: pet['petImageUrl'] != null
-                                        ? CachedNetworkImageProvider(pet['petImageUrl'])
-                                        : const AssetImage('assets/default_profile.png') as ImageProvider,
+                                        ? CachedNetworkImageProvider(
+                                            pet['petImageUrl'])
+                                        : const AssetImage(
+                                                'assets/default_profile.png')
+                                            as ImageProvider,
                                   ),
                                 ),
                                 title: Row(
@@ -264,8 +490,10 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
                                 width: double.infinity,
                                 child: CachedNetworkImage(
                                   imageUrl: post['postImageUrl'],
-                                  placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                                  placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator()),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -273,22 +501,29 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
                                 padding: EdgeInsets.all(8.0),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
                                 child: GestureDetector(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => UserProfileScreen(userId: postedBy),
+                                        builder: (context) =>
+                                            UserProfileScreen(userId: postedBy),
                                       ),
                                     );
                                   },
                                   child: Row(
                                     children: [
                                       CircleAvatar(
-                                        backgroundImage: owner['profileImageUrl'] != null
-                                            ? CachedNetworkImageProvider(owner['profileImageUrl'])
-                                            : const AssetImage('assets/default_profile.png') as ImageProvider,
+                                        backgroundImage: owner[
+                                                    'profileImageUrl'] !=
+                                                null
+                                            ? CachedNetworkImageProvider(
+                                                owner['profileImageUrl'])
+                                            : const AssetImage(
+                                                    'assets/default_profile.png')
+                                                as ImageProvider,
                                       ),
                                       const SizedBox(width: 8.0),
                                       Text('@${owner['username']}'),
@@ -304,18 +539,27 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
                                 children: [
                                   IconButton(
                                     icon: Icon(
-                                      likedByCurrentUser ? Icons.favorite : Icons.favorite_outline,
-                                      color: likedByCurrentUser ? Colors.red : null,
+                                      likedByCurrentUser
+                                          ? Icons.favorite
+                                          : Icons.favorite_outline,
+                                      color: likedByCurrentUser
+                                          ? Colors.red
+                                          : null,
                                     ),
                                     onPressed: () {
-                                      _toggleLikePost(widget.postId, currentUser!.uid, likedByCurrentUser, postedBy);
+                                      _toggleLikePost(
+                                          widget.postId,
+                                          currentUser!.uid,
+                                          likedByCurrentUser,
+                                          postedBy);
                                     },
                                   ),
                                   Text('$likeCount likes'),
                                   IconButton(
                                     icon: const Icon(Icons.comment),
                                     onPressed: () {
-                                      _showCommentDialog(context, widget.postId, postedBy);
+                                      _showCommentDialog(
+                                          context, widget.postId, postedBy);
                                     },
                                   ),
                                 ],
@@ -335,11 +579,13 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
                                 ),
                                 child: const Row(
                                   children: [
-                                    Icon(Icons.pets, color: Colors.white, size: 16),
+                                    Icon(Icons.pets,
+                                        color: Colors.white, size: 16),
                                     SizedBox(width: 4),
                                     Text(
                                       '¡Adóptame!',
-                                      style: TextStyle(color: Colors.white, fontSize: 12),
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 12),
                                     ),
                                   ],
                                 ),
