@@ -7,6 +7,7 @@ import '../services/functions_services.dart'; // Importa el servicio de funcione
 import '../services/notification_service.dart';
 import '../user/user_profile.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import '../services/email_service.dart';
 
 class RefugeRequestsScreen extends StatefulWidget {
   const RefugeRequestsScreen({Key? key}) : super(key: key);
@@ -96,11 +97,25 @@ class _RefugeRequestsScreenState extends State<RefugeRequestsScreen> {
     setState(() {
       _isLoading = true;
     });
+
     try {
+      // Actualiza el rol del usuario a 'refugio'
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .update({'rol': 'refugio'});
+
+      // Recupera el perfil y el email del usuario de Firestore
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      // Asegúrate de que los campos existen antes de acceder a ellos
+      final profileName = userDoc.get('profileName') ?? 'Nombre no disponible';
+      final refugeEmail = userDoc.get('email') ?? 'Correo no disponible';
+
+      // Muestra mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: AwesomeSnackbarContent(
@@ -113,10 +128,20 @@ class _RefugeRequestsScreenState extends State<RefugeRequestsScreen> {
           elevation: 0,
         ),
       );
+
+      // Marca la solicitud como revisada
       _markAsReviewed(request);
+
+      // Envía notificación de revisión
       _sendReviewNotification(userId);
+
+      // Envía un email de notificación
+      final emailService = EmailService();
+      await emailService.sendApprovedRefugioNotificationEmail(
+          profileName, refugeEmail);
     } catch (e) {
       print("Error converting to refuge: $e");
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: AwesomeSnackbarContent(
@@ -133,7 +158,9 @@ class _RefugeRequestsScreenState extends State<RefugeRequestsScreen> {
       setState(() {
         _isLoading = false;
       });
-      Navigator.of(context).pop(); // Cierra el diálogo
+
+      // Cierra el diálogo
+      Navigator.of(context).pop();
     }
   }
 

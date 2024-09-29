@@ -177,4 +177,80 @@ class EmailService {
       print('Error enviando correo: $e');
     }
   }
+
+  Future<void> sendApprovedRefugioNotificationEmail(
+      String refugeProfileName, String refugeEmail) async {
+    try {
+      // Obtener los correos de destinatarios desde Firestore
+      DocumentSnapshot<Map<String, dynamic>> configSnapshot =
+          await FirebaseFirestore.instance
+              .collection('Admin')
+              .doc('configuraciones')
+              .get();
+
+      List<String> notificationEmails =
+          List<String>.from(configSnapshot.data()?['notificacionemail'] ?? []);
+
+      if (refugeEmail.isEmpty) {
+        print('El correo del refugio es obligatorio.');
+        return;
+      }
+
+      // Componer el mensaje de correo electrónico con HTML y la imagen de perfil
+      final message = Message()
+        ..from = Address(username, 'MascotApp')
+        ..recipients
+            .add(refugeEmail) // Correo del refugio como destinatario principal
+        ..bccRecipients.addAll(notificationEmails) // Correos en copia oculta
+        ..subject = 'Felicitaciones! Has sido aprobado como Refugio'
+        ..html = '''
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .header {
+      text-align: center;
+      padding: 20px;
+    }
+    .content {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .signature {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="https://i.imgur.com/ac16n11.png" alt="MascotApp Logo" width="250" height="125"/>
+  </div>
+
+  <div class="content">
+    <h2>¡Hola <b>$refugeProfileName</b>!</h2>
+
+    <p>Nos complace informarte que su solicitud para ser refugio fue <strong style="color:green;">aprobada</strong>!</p>
+
+    <p>Ya puedes ver tu insignia de refugio <img src="https://i.imgur.com/lFYa2DK.png" alt="Insignia de refugio" style="width:20px; vertical-align:middle;"> en tu perfil y al lado de tu username.</p>
+
+    <p>Esperamos que tus mascotas encuentren un hogar lleno de amor ❤️</p>
+
+    <div class="signature">
+      <p>Atentamente,</p>
+      <p>El equipo de MascotApp</p>
+    </div>
+  </div>
+</body>
+</html>
+''';
+
+      // Enviar el correo
+      final sendReport = await send(message, smtpServer);
+      print('Correo enviado: ${sendReport.toString()}');
+    } catch (e) {
+      print('Error enviando correo: $e');
+    }
+  }
 }
