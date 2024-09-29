@@ -27,6 +27,8 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
   bool _hasSubmitted = false;
   String? _uid;
 
+  bool _isLoading = false;
+
   // Form fields
   final TextEditingController _nomRefugioController = TextEditingController();
   final TextEditingController _dirRefugioController = TextEditingController();
@@ -82,55 +84,65 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
 
   Future<void> _submitApplication() async {
     if (_formKey.currentState!.validate()) {
-      await _firestore.collection('ApplyRefugio').add({
-        'nomRefugio': _nomRefugioController.text,
-        'dirRefugio': _dirRefugioController.text,
-        'nomRepresentante': _nomRepresentanteController.text,
-        'rutRepresentante': rut,
-        'telRepresentante': _telRepresentanteController.text,
-        'cantAnimales': int.parse(_cantAnimalesController.text),
-        'fecsolicitud': DateTime.now(),
-        'IDUsuario': _uid,
-        'revisado': false,
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: AwesomeSnackbarContent(
-            title: 'Exito',
-            message: 'Solicitud enviada con éxito!',
-            contentType: ContentType.success,
-          ),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-      );
-
-      // Enviar notificación personalizada
-      final NotificationService notificationService = NotificationService();
-      await notificationService.sendCustomNotification(
-        'Recibimos tu solicitud para ser refugio! El equipo de MascotAPP está revisandola.',
-        '1', // Código del icono de pets
-        _uid!,
-      );
-
-      // Enviar notificación por correo
-      DateTime now = DateTime.now();
-      String formattedDate = DateFormat('dd/MM/yyyy').format(now);
-      final emailService = EmailService();
-      await emailService.sendApplyRefugioNotificationEmail(
-          _nomRefugioController.text,
-          _dirRefugioController.text,
-          _nomRepresentanteController.text,
-          rut,
-          _telRepresentanteController.text,
-          _cantAnimalesController.text,
-          formattedDate);
-
       setState(() {
-        _hasSubmitted = true;
+        _isLoading = true; // Cambiamos a estado de carga
       });
+
+      try {
+        await _firestore.collection('ApplyRefugio').add({
+          'nomRefugio': _nomRefugioController.text,
+          'dirRefugio': _dirRefugioController.text,
+          'nomRepresentante': _nomRepresentanteController.text,
+          'rutRepresentante': rut,
+          'telRepresentante': _telRepresentanteController.text,
+          'cantAnimales': int.parse(_cantAnimalesController.text),
+          'fecsolicitud': DateTime.now(),
+          'IDUsuario': _uid,
+          'revisado': false,
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: AwesomeSnackbarContent(
+              title: 'Exito',
+              message: 'Solicitud enviada con éxito!',
+              contentType: ContentType.success,
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+        );
+
+        // Enviar notificación personalizada
+        final NotificationService notificationService = NotificationService();
+        await notificationService.sendCustomNotification(
+          'Recibimos tu solicitud para ser refugio! El equipo de MascotAPP está revisandola.',
+          '1', // Código del icono de pets
+          _uid!,
+        );
+
+        // Enviar notificación por correo
+        DateTime now = DateTime.now();
+        String formattedDate = DateFormat('dd/MM/yyyy').format(now);
+        final emailService = EmailService();
+        await emailService.sendApplyRefugioNotificationEmail(
+            _nomRefugioController.text,
+            _dirRefugioController.text,
+            _nomRepresentanteController.text,
+            rut,
+            _telRepresentanteController.text,
+            _cantAnimalesController.text,
+            formattedDate);
+
+        setState(() {
+          _hasSubmitted = true;
+        });
+      } finally {
+        setState(() {
+          _isLoading = false; // Termina el estado de carga
+        });
+      }
     }
   }
 
@@ -143,12 +155,12 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isRefugio
-            //? _buildRefugioMessage()
-            //: _isAdmin
-            //    ? _buildAdminMessage()
-            //    : _hasSubmitted
-            ? _buildSubmittedMessage()
-            : _buildForm(),
+            ? _buildRefugioMessage()
+            : _isAdmin
+                ? _buildAdminMessage()
+                : _hasSubmitted
+                    ? _buildSubmittedMessage()
+                    : _buildForm(),
       ),
     );
   }
@@ -313,8 +325,12 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: _submitApplication,
-            child: const Text('Enviar Solicitud'),
+            onPressed: _isLoading ? null : _submitApplication,
+            child: _isLoading
+                ? const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  )
+                : const Text('Enviar Solicitud'),
           ),
         ],
       ),

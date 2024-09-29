@@ -26,6 +26,7 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
   String numTel = '';
   String dir = '';
   bool hasSentRequest = false;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -71,43 +72,82 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
   }
 
   Future<void> _submitForm(String petNameNotifica) async {
+    setState(() {
+      isLoading = true; // Mostrar el indicador de carga
+    });
+
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
       _showMessage(
           'No se pudo obtener la información del usuario. Por favor, inicia sesión.');
+      setState(() {
+        isLoading = false; // Ocultar el indicador de carga si hay error
+      });
       return;
     }
 
     final userId = user.uid;
-    final petRef =
-        FirebaseFirestore.instance.collection('pets').doc(widget.petId);
-    final petData = await petRef.get();
-    final petOwnerId = petData['owner'];
 
-    await FirebaseFirestore.instance.collection('ApplyAdopt').add({
-      'nombreComp': nombreComp,
-      'rut': rut,
-      'numTel': _phoneController.text,
-      'dir': dir,
-      'idSolicitante': userId,
-      'idRefugio': petOwnerId,
-      'idMascota': widget.petId,
-      'revisado': false,
-      'fecsolicitud': Timestamp.now(),
-    });
+    try {
+      // Obtener datos de la mascota
+      final petRef =
+          FirebaseFirestore.instance.collection('pets').doc(widget.petId);
+      final petData = await petRef.get();
+      final petOwnerId = petData['owner'];
 
-    // Enviar notificación por correo
-    final emailService = EmailService();
-    await emailService.sendAdoptNotificationEmail(petNameNotifica, nombreComp);
+      // Obtener datos del refugio (idRefugio)
+      final refugeRef =
+          FirebaseFirestore.instance.collection('users').doc(petOwnerId);
+      final refugeData = await refugeRef.get();
 
-    await _sendAdoptNotification(userId, petNameNotifica);
+      if (!refugeData.exists) {
+        _showMessage('No se pudo obtener la información del refugio.');
+        setState(() {
+          isLoading = false; // Ocultar el indicador de carga si hay error
+        });
+        return;
+      }
 
-    _showMessage(
-        'Hemos enviado tus datos al refugio, espera a que te contacten.');
-    setState(() {
-      hasSentRequest = true;
-    });
+      final refugeProfileName = refugeData['profileName'];
+      final refugeEmail = refugeData['email'];
+
+      // Guardar la solicitud en la colección ApplyAdopt
+      await FirebaseFirestore.instance.collection('ApplyAdopt').add({
+        'nombreComp': nombreComp,
+        'rut': rut,
+        'numTel': _phoneController.text,
+        'dir': dir,
+        'idSolicitante': userId,
+        'idRefugio': petOwnerId,
+        'idMascota': widget.petId,
+        'revisado': false,
+        'fecsolicitud': Timestamp.now(),
+      });
+
+      // Enviar notificación por correo
+      final emailService = EmailService();
+      await emailService.sendAdoptNotificationEmail(
+          petNameNotifica,
+          nombreComp,
+          refugeProfileName, // Nombre del perfil del refugio
+          refugeEmail // Correo del refugio
+          );
+
+      await _sendAdoptNotification(userId, petNameNotifica);
+
+      _showMessage(
+          'Hemos enviado tus datos al refugio, espera a que te contacten.');
+      setState(() {
+        hasSentRequest = true;
+      });
+    } catch (e) {
+      _showMessage('Error al enviar la solicitud: $e');
+    } finally {
+      setState(() {
+        isLoading = false; // Ocultar el indicador de carga al terminar
+      });
+    }
   }
 
   void _showMessage(String message) {
@@ -279,14 +319,16 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
                         },
                       ),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            _submitForm(pet['petName']);
-                          }
-                        },
-                        child: const Text('Enviar Solicitud'),
-                      ),
+                      isLoading
+                          ? const CircularProgressIndicator() // Indicador de carga
+                          : ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  _submitForm(pet['petName']);
+                                }
+                              },
+                              child: const Text('Enviar Solicitud'),
+                            ),
                     ],
                   ),
                 ),
