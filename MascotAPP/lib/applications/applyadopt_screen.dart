@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import '../services/validations_service.dart';
 import '../services/notification_service.dart'; // Importa el servicio de notificaciones
+import '../services/email_service.dart';
 
 class ApplyAdoptScreen extends StatefulWidget {
   final String petId;
@@ -95,6 +96,10 @@ class _ApplyAdoptScreenState extends State<ApplyAdoptScreen> {
       'revisado': false,
       'fecsolicitud': Timestamp.now(),
     });
+
+    // Enviar notificación por correo
+    final emailService = EmailService();
+    await emailService.sendAdoptNotificationEmail(petNameNotifica, nombreComp);
 
     await _sendAdoptNotification(userId, petNameNotifica);
 

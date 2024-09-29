@@ -53,6 +53,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   url_launcher: ^6.1.7
   shared_preferences: ^2.3.2
+  mailer: ^6.2.0
 
 
 

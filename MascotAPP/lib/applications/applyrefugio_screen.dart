@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/notification_service.dart';
 import '../services/validations_service.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import '../services/email_service.dart';
+import 'package:intl/intl.dart';
 
 class ApplyRefugioScreen extends StatefulWidget {
   const ApplyRefugioScreen({super.key});
@@ -113,6 +115,19 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
         _uid!,
       );
 
+      // Enviar notificación por correo
+      DateTime now = DateTime.now();
+      String formattedDate = DateFormat('dd/MM/yyyy').format(now);
+      final emailService = EmailService();
+      await emailService.sendApplyRefugioNotificationEmail(
+          _nomRefugioController.text,
+          _dirRefugioController.text,
+          _nomRepresentanteController.text,
+          rut,
+          _telRepresentanteController.text,
+          _cantAnimalesController.text,
+          formattedDate);
+
       setState(() {
         _hasSubmitted = true;
       });
@@ -128,12 +143,12 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isRefugio
-            ? _buildRefugioMessage()
-            : _isAdmin
-                ? _buildAdminMessage()
-                : _hasSubmitted
-                    ? _buildSubmittedMessage()
-                    : _buildForm(),
+            //? _buildRefugioMessage()
+            //: _isAdmin
+            //    ? _buildAdminMessage()
+            //    : _hasSubmitted
+            ? _buildSubmittedMessage()
+            : _buildForm(),
       ),
     );
   }
