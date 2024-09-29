@@ -18,6 +18,7 @@ import '../admin/solicitudes_refugio_screen.dart';
 import 'mini_games_screen.dart';
 import '../admin/user_finder.dart';
 import '../admin/mascota_finder.dart';
+import '../admin/admin_email_edit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -535,6 +536,19 @@ class HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const RefugeRequestsScreen(),
+                  ),
+                );
+              },
+            ),
+          if (userRole == 'admin')
+            ListTile(
+              leading: const Icon(Icons.shield, color: Colors.red),
+              title: const Text('Lista de correos notificaciones admin'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminEmailScreen(),
                   ),
                 );
               },
