@@ -12,6 +12,7 @@ import '../posts/create_post.dart';
 import 'notifications_screen.dart';
 import 'pets_screen.dart';
 import 'feed_screen.dart';
+import 'personalfeed_screen.dart';
 import 'adoptar_screen.dart';
 import 'pending_posts_screen.dart';
 import '../admin/solicitudes_refugio_screen.dart';
@@ -217,6 +218,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const FeedScreen(),
+    const PersonalFeedScreen(),
     const CreatePostScreen(),
     const PetsScreen(),
     const AdoptarScreen(),
@@ -418,6 +420,10 @@ class HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Feed',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Fan & Amigos',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.camera_alt),
