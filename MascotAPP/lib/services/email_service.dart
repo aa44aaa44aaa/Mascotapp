@@ -154,7 +154,11 @@ class EmailService {
             <li><b>Dirección del refugio:</b> $dirRefugio</li>
             <li><b>Nombre del representante:</b> $nomRepresentante</li>
             <li><b>Rut del representante:</b> $rutRepresentante</li>
-            <li><b>Teléfono del representante:</b> $telRepresentante</li>
+            <li><b>Teléfono del representante:</b> 
+            <a href="https://wa.me/$telRepresentante?text=Hola%20$nomRepresentante%20te%20escribo%20respecto%20a%20tu%20solicitud%20de%20refugio%20para%20$nomRefugio" target="_blank">
+            $telRepresentante
+            </a>
+            </li>
             <li><b>Cantidad de animales:</b> $cantAnimales</li>
             <li><b>Fecha de solicitud:</b> $fecsolicitud</li>
           </ul>
