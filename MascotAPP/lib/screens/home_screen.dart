@@ -20,6 +20,7 @@ import 'mini_games_screen.dart';
 import '../admin/user_finder.dart';
 import '../admin/mascota_finder.dart';
 import '../admin/admin_email_edit.dart';
+import 'map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -221,7 +222,8 @@ class HomeScreenState extends State<HomeScreen> {
     const PersonalFeedScreen(),
     const CreatePostScreen(),
     const PetsScreen(),
-    const AdoptarScreen(),
+    //const AdoptarScreen(),
+    const MapScreen(),
     //const MiniGamesScreen(),
   ];
 
@@ -238,8 +240,11 @@ class HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       endDrawer: _buildDrawer(),
-      drawerEdgeDragWidth:
-          MediaQuery.of(context).size.width, // Swipe para abrir drawer
+      drawerEdgeDragWidth: _selectedIndex == 4
+          ? 0 // Desactiva el swipe cuando estés en la pantalla de mapa
+          : MediaQuery.of(context)
+              .size
+              .width, // Swipe activado en otras pantallas// Swipe para abrir drawer
       appBar: AppBar(
         title: const Text('MascotAPP'),
         automaticallyImplyLeading: false,
@@ -433,9 +438,13 @@ class HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.pets),
             label: 'Mis Mascotas',
           ),
+          //BottomNavigationBarItem(
+          //  icon: Icon(Icons.volunteer_activism),
+          //  label: 'Adoptar',
+          //),
           BottomNavigationBarItem(
-            icon: Icon(Icons.volunteer_activism),
-            label: 'Adoptar',
+            icon: Icon(Icons.location_city),
+            label: 'Mapa',
           ),
           //BottomNavigationBarItem(
           //  icon: Icon(Icons.gamepad), // Icono de control de juego

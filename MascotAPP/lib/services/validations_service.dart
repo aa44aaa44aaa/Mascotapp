@@ -55,4 +55,5 @@ class ValidationService {
     );
     return regex.hasMatch(email);
   }
+
 }
