@@ -387,8 +387,8 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                                         const Tooltip(
                                           message: 'Refugio Verificado',
                                           triggerMode: TooltipTriggerMode.tap,
-                                          child: Icon(Icons.verified,
-                                              color: Colors.blue, size: 18),
+                                          child: const Icon(Icons.pets,
+                                              color: Colors.brown, size: 18),
                                         ),
                                       ],
                                       if (ownerRole == 'admin') ...[

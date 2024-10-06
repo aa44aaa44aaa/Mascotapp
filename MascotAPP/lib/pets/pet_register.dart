@@ -8,6 +8,15 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
+
+const MAPBOX_ACCESS_TOKEN =
+    'pk.eyJ1IjoiYWE0NGFhYTQ0YWFhIiwiYSI6ImNtMXNsa2NvNDA0dzQyb3E0am4zdTc5ZmcifQ.DkLqjouazVETO5EfYKTmhw';
 
 class PetRegisterScreen extends StatefulWidget {
   const PetRegisterScreen({super.key});
@@ -26,7 +35,8 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
   bool _isLoading = false;
   bool _photoError = false;
   double _opacity = 1.0;
-
+  bool showUserTooltip = false;
+  String? userProfilePicUrl = 'assets/default_profile.png';
   String? petName,
       petType,
       petBreed,
@@ -39,6 +49,13 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
   File? _petImage;
   bool _knowsExactDate = true;
   String? userRole;
+  double? lat;
+  double? long;
+  LatLng? userLocation;
+  MapController mapController = MapController();
+  bool locationSelected =
+      false; // Nueva variable para controlar si la ubicación fue seleccionada.
+  String? errorMessage; // Para mostrar el mensaje de error.
 
   // Nuevas variables booleanas para "Esterilizado" y "Vacunado"
   bool _isSterilized = false;
@@ -53,6 +70,7 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
   void initState() {
     super.initState();
     _loadAnimalData();
+    _getUserLocation();
     _loadUserRole();
   }
 
@@ -72,6 +90,8 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
     DocumentSnapshot userDoc =
         await _firestore.collection('users').doc(user!.uid).get();
     setState(() {
+      userProfilePicUrl = userDoc['profileImageUrl'] ??
+          'assets/default_profile.png'; // Asignamos la imagen o una por defecto
       userRole = userDoc['rol'];
     });
   }
@@ -99,6 +119,25 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
       });
     } else if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      // Validar que la ubicación se haya seleccionado si el estado es adopción o perdido
+      if ((petStatus == 'adopcion' || petStatus == 'perdido') &&
+          (lat == null || long == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: AwesomeSnackbarContent(
+              title: 'Error',
+              message: 'Debes seleccionar una ubicación en el mapa.',
+              contentType: ContentType.failure,
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+        );
+        return; // Salir de la función si no hay ubicación seleccionada
+      }
+
       if (_currentPage < 2) {
         _pageController.nextPage(
           duration: Duration(milliseconds: 300),
@@ -164,8 +203,9 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
           'petImageUrl': imageUrl,
           'estado': petStatus,
           'verified': false,
-          if (petStatus == 'perdido' || petStatus == 'adopcion')
-            'location': location,
+          if (lat != null && long != null) 'lat': lat, // Guardar lat y long
+          if (lat != null && long != null) 'long': long,
+          if (location != null) 'location': location,
           if (petStatus == 'adopcion') 'esterilizado': _isSterilized,
           if (petStatus == 'adopcion') 'vacunado': _isVaccinated,
         });
@@ -203,6 +243,180 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
         });
       }
     }
+  }
+
+  Future<void> _getUserLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    // Verificar si el servicio de ubicación está habilitado
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('El servicio de ubicación está deshabilitado.');
+    }
+
+    // Verificar permisos de ubicación
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Los permisos de ubicación están denegados.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Los permisos de ubicación están denegados permanentemente.');
+    }
+
+    // Obtener la ubicación actual del usuario
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    setState(() {
+      userLocation = LatLng(position.latitude, position.longitude);
+    });
+
+    // Mover el mapa a la ubicación actual
+    mapController.move(userLocation!, 13);
+  }
+
+  Future<void> _selectLocationOnMap() async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SizedBox(
+          height: 400,
+          child: Stack(
+            children: [
+              FlutterMap(
+                mapController: mapController,
+                options: MapOptions(
+                  initialCenter: userLocation ?? LatLng(-33.447, -70.673),
+                  initialZoom: 13,
+                  onTap: (tapPosition, point) async {
+                    setState(() {
+                      lat = point.latitude;
+                      long = point.longitude;
+                      userLocation =
+                          point; // Actualizar la ubicación seleccionada
+                    });
+                    // Llamar a la API de Mapbox para obtener el nombre de la ciudad
+                    await _getCityNameFromCoordinates(lat!, long!);
+
+                    Navigator.pop(context); // Cerrar el mapa
+                  },
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+                    additionalOptions: const {
+                      'accessToken': MAPBOX_ACCESS_TOKEN,
+                      'id': 'mapbox/streets-v12',
+                    },
+                  ),
+                  if (userLocation != null)
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: userLocation!,
+                          width: 50,
+                          height: 50,
+                          child: userMarker(),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+              Positioned(
+                bottom: 20, // Ajusta la distancia desde la parte inferior
+                left: 20,
+                right:
+                    20, // Hace que el botón se ajuste al ancho del contenedor
+                child: TextButton(
+                  onPressed: () async {
+                    if (userLocation != null) {
+                      setState(() {
+                        lat = userLocation!.latitude;
+                        long = userLocation!.longitude;
+                      });
+                      // Llamar a la API de Mapbox para obtener el nombre de la ciudad con la ubicación actual
+                      await _getCityNameFromCoordinates(lat!, long!);
+
+                      Navigator.pop(context); // Cerrar el mapa
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.all(16.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      side: const BorderSide(
+                          color: Colors.blue), // Borde opcional
+                    ),
+                  ),
+                  child: const Text(
+                    'Seleccionar mi ubicación actual',
+                    style: TextStyle(color: Colors.blue), // Color del texto
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _getCityNameFromCoordinates(double lat, double long) async {
+    final url =
+        'https://api.mapbox.com/geocoding/v5/mapbox.places/$long,$lat.json?access_token=$MAPBOX_ACCESS_TOKEN';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print("data: $data");
+
+        if (data['features'].isNotEmpty) {
+          // Ensure that place_type is a list and then check if it contains 'place'
+          final place = data['features'].firstWhere(
+            (feature) => (feature['place_type'] is List &&
+                feature['place_type'].contains('place')),
+            orElse: () => null,
+          );
+          if (place != null) {
+            setState(() {
+              location = place['text']; // Guardar el nombre de la ciudad
+            });
+          }
+        }
+      } else {
+        print('Error al obtener la ubicación: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error en la solicitud de Mapbox: $e');
+    }
+  }
+
+  Widget userMarker() {
+    return Tooltip(
+      message: showUserTooltip ? '¡Estás aquí!' : '', // Mensaje del tooltip
+      triggerMode: TooltipTriggerMode.tap,
+      child: CircleAvatar(
+        radius: 25, // Tamaño del avatar del usuario
+        backgroundImage: userProfilePicUrl != null
+            ? CachedNetworkImageProvider(userProfilePicUrl!)
+            : const AssetImage('assets/default_profile.png') as ImageProvider,
+        child: Container(
+          decoration: BoxDecoration(
+            border:
+                Border.all(color: Colors.blueAccent, width: 4), // Borde azul
+            borderRadius: BorderRadius.circular(50),
+          ),
+        ),
+      ),
+    );
   }
 
   void _animateMessage() {
@@ -383,9 +597,8 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
                 const InputDecoration(labelText: 'Estado de la mascota'),
             items: [
               DropdownMenuItem(value: 'nada', child: const Text('Ninguno')),
-              if (userRole == 'refugio')
-                DropdownMenuItem(
-                    value: 'adopcion', child: const Text('En Adopción')),
+              DropdownMenuItem(
+                  value: 'adopcion', child: const Text('En Adopción')),
               DropdownMenuItem(value: 'perdido', child: const Text('Perdido')),
               DropdownMenuItem(
                   value: 'enmemoria', child: const Text('En Memoria')),
@@ -401,17 +614,63 @@ class _PetRegisterScreenState extends State<PetRegisterScreen> {
         if (petStatus == 'perdido' || petStatus == 'adopcion')
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextFormField(
-              decoration: const InputDecoration(
-                  labelText: 'Ubicación (Comuna, Ciudad)'),
-              onSaved: (value) => location = value,
-              validator: (value) {
-                if (value!.isEmpty &&
-                    (petStatus == 'perdido' || petStatus == 'adopcion')) {
-                  return 'Por favor ingresa la ubicación';
-                }
-                return null;
-              },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Ubicación:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      lat != null && long != null
+                          ? '(${lat?.toStringAsFixed(2)}, ${long?.toStringAsFixed(2)})'
+                          : 'No seleccionada',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Nombre de la ubicación:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        location != null ? '$location' : 'No seleccionada',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  // Aquí se centra el botón
+                  child: ElevatedButton(
+                    onPressed: _selectLocationOnMap,
+                    child: const Text('Seleccionar en el Mapa'),
+                  ),
+                ),
+              ],
             ),
           ),
         if (petStatus == 'adopcion')
