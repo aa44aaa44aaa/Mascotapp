@@ -332,12 +332,12 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isRefugio
-            //? _buildRefugioMessage()
-            //: _isAdmin
-            // ? _buildAdminMessage()
-            //: _hasSubmitted
-            ? _buildSubmittedMessage()
-            : _buildForm(),
+            ? _buildRefugioMessage()
+            : _isAdmin
+                ? _buildAdminMessage()
+                : _hasSubmitted
+                    ? _buildSubmittedMessage()
+                    : _buildForm(),
       ),
     );
   }
