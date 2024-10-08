@@ -106,7 +106,7 @@ class _MapScreenState extends State<MapScreen> {
   // Método para iniciar la actualización periódica de la ubicación
   void _startLocationUpdates() {
     locationUpdateTimer = Timer.periodic(const Duration(seconds: 60), (timer) {
-      _getUserLocation(); // Obtener la ubicación cada 60 segundos
+      _updateUserLocation(); // Obtener la ubicación cada 60 segundos
     });
   }
 
@@ -196,6 +196,49 @@ class _MapScreenState extends State<MapScreen> {
           showUserTooltip = false;
         });
       }
+    });
+  }
+
+  Future<void> _updateUserLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Comprobar si los servicios de ubicación están habilitados
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Si los servicios no están habilitados, no seguimos
+      print("servicios no están habilitados, no seguimos");
+      return;
+    }
+
+    // Comprobar permisos
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Si el usuario deniega los permisos, no continuamos
+        print("El usuario deniega los permisos, no continuamos");
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Los permisos están denegados para siempre
+      print("Los permisos están denegados para siempre");
+      return;
+    }
+
+    // Obtener la ubicación actual del usuario
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    setState(() {
+      // Establecemos la nueva ubicación del usuario
+      userLocation = LatLng(position.latitude, position.longitude);
+      print("User location: $userLocation");
+
+      // Mostrar el tooltip del usuario sin centrar el mapa
+      showUserTooltip = true;
     });
   }
 
