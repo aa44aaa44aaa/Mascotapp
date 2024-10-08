@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import '../pets/pet_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
+import '../user/user_profile.dart';
 
 const MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoiYWE0NGFhYTQ0YWFhIiwiYSI6ImNtMXNsa2NvNDA0dzQyb3E0am4zdTc5ZmcifQ.DkLqjouazVETO5EfYKTmhw';
@@ -413,8 +414,13 @@ class _MapScreenState extends State<MapScreen> {
                       alignment: Alignment.topCenter,
                       child: GestureDetector(
                         onTap: () {
-                          // Acción al tocar un refugio (puedes abrir su perfil si tienes uno)
-                          print("Refugio seleccionado: $shelterId");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  UserProfileScreen(userId: shelterId),
+                            ),
+                          );
                         },
                         child: shelterMarker(
                           shelter,
@@ -492,8 +498,7 @@ class _MapScreenState extends State<MapScreen> {
             builder: (BuildContext context, ScrollController scrollController) {
               if (combinedList.isEmpty) {
                 return const Center(
-                  child:
-                      Text('No hay mascotas en adopción, perdidas o refugios.'),
+                  child: Text(':)'),
                 );
               }
 
@@ -665,7 +670,7 @@ class _MapScreenState extends State<MapScreen> {
                   } else {
                     // Tarjeta de refugio
                     var shelter = item;
-                    var shelterName = shelter['username'];
+                    var shelterName = shelter['profileName'];
                     var location = shelter['location'];
                     var distance = shelter['distance'] != null
                         ? (shelter['distance'] / 1000).toStringAsFixed(2)
@@ -702,7 +707,7 @@ class _MapScreenState extends State<MapScreen> {
                               child: Row(
                                 children: [
                                   const Icon(
-                                    Icons.home_work,
+                                    Icons.pets,
                                     color: Colors.green,
                                     size: 16,
                                   ),
@@ -733,6 +738,15 @@ class _MapScreenState extends State<MapScreen> {
                             ),
                           ],
                         ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UserProfileScreen(
+                                  userId: shelter['shelterId']),
+                            ),
+                          );
+                        },
                       ),
                     );
                   }
