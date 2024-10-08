@@ -55,11 +55,11 @@ class HomeScreenState extends State<HomeScreen> {
     if (user == null) {
       _showSessionExpiredDialog();
     } else {
-      _loadUserProfile();
       _loadNotifications();
       _checkIfPetOwner();
       _loadAdoptionRequests();
       _loadAdoptionFreshRequests();
+      _loadUserProfile();
     }
   }
 
