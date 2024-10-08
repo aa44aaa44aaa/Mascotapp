@@ -115,11 +115,25 @@ class _RefugeRequestsScreenState extends State<RefugeRequestsScreen> {
       final profileName = userDoc.get('profileName') ?? 'Nombre no disponible';
       final refugeEmail = userDoc.get('email') ?? 'Correo no disponible';
 
+      // Obtén los valores de latitud, longitud y la dirección del refugio desde el documento de solicitud
+      final lat = request.get('lat');
+      final long = request.get('long');
+      final dirRefugio = request.get('dirRefugio') ?? 'Dirección no disponible';
+
+      // Actualiza los campos 'lat', 'long', y 'location' en el perfil del usuario
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'lat': lat ??
+            FieldValue.delete(), // Crea si no existe, o elimina si es null
+        'long': long ??
+            FieldValue.delete(), // Crea si no existe, o elimina si es null
+        'location': dirRefugio, // Crea el campo 'location' con 'dirRefugio'
+      });
+
       // Muestra mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: AwesomeSnackbarContent(
-            title: 'Exito!',
+            title: 'Éxito!',
             message: 'Usuario convertido en refugio',
             contentType: ContentType.success,
           ),
