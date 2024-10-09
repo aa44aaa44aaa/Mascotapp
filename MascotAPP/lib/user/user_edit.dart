@@ -28,6 +28,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
 
   final TextEditingController _profileNameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
       profileName = userDoc['profileName'];
       bio = userDoc['bio'];
 
+      _usernameController.text = username ?? '';
       _profileNameController.text = profileName ?? '';
       _bioController.text = bio ?? '';
     });
@@ -104,6 +106,26 @@ class _UserEditScreenState extends State<UserEditScreen> {
 
     String userId = _auth.currentUser!.uid;
     String? imageUrl = profileImageUrl;
+    String newUsername = _usernameController.text.trim();
+
+    // Verificar si el nombre de usuario ya está en uso
+    final QuerySnapshot result = await _firestore
+        .collection('users')
+        .where('username', isEqualTo: newUsername)
+        .get();
+
+    final List<DocumentSnapshot> documents = result.docs;
+
+    // Si el nombre de usuario está en uso por otro usuario
+    if (documents.isNotEmpty && documents.first.id != userId) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El nombre de usuario ya está en uso')),
+      );
+      return;
+    }
 
     if (_profileImage != null) {
       final storageRef = FirebaseStorage.instance
@@ -121,6 +143,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
 
     await _firestore.collection('users').doc(userId).update({
       'profileImageUrl': imageUrl,
+      'username': newUsername,
       'profileName': _profileNameController.text,
       'bio': _bioController.text,
     });
@@ -163,6 +186,29 @@ class _UserEditScreenState extends State<UserEditScreen> {
                           ? const Icon(Icons.camera_alt, size: 50)
                           : null,
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nombre de usuario',
+                      //prefixIcon: const Icon(Icons.account_circle),
+                      prefix: const Padding(
+                        padding: EdgeInsets.only(
+                            right: 1.0), // Añadimos un pequeño espacio
+                        child: Text('@'),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value!.isEmpty) return 'Ingresa tu nombre de usuario';
+                      if (value.length < 2 || value.length > 20)
+                        return 'El nombre de usuario debe tener entre 2 y 20 caracteres';
+                      if (value.contains(' '))
+                        return 'El nombre de usuario no puede contener espacios';
+                      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value))
+                        return 'El nombre de usuario solo puede contener letras, números y guion bajo';
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
