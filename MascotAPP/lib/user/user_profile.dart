@@ -1,3 +1,4 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart'; // Asegúrate de agregar este paquete en tu pubspec.yaml
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,15 +22,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   String? profileImageUrl, username, profileName, bio, userRole;
   List<DocumentSnapshot>? pets;
+  int friendCount = 0;
   bool isOwner = false;
-  bool isAdmin = false; // Para verificar si el usuario actual es administrador
+  bool isAdmin = false;
+  bool isFriend = false;
+  bool requestSent = false;
+  String? requestId; // Para almacenar el ID de la solicitud enviada
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
     _loadUserPets();
-    _checkIfAdmin(); // Verificar si el usuario actual es administrador
+    _loadFriendCount();
+    _checkIfAdmin();
+    _checkFriendStatus(); // Verifica si ya son amigos o si hay una solicitud
   }
 
   Future<void> _loadUserProfile() async {
@@ -47,13 +54,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _checkIfAdmin() async {
-    // Verificar si el usuario actual es administrador
     String currentUserId = _auth.currentUser!.uid;
     DocumentSnapshot currentUserDoc =
         await _firestore.collection('users').doc(currentUserId).get();
     setState(() {
-      isAdmin = currentUserDoc['rol'] ==
-          'admin'; // Verifica el rol del usuario actual
+      isAdmin = currentUserDoc['rol'] == 'admin';
+    });
+  }
+
+  Future<void> _loadFriendCount() async {
+    String userId = widget.userId ?? _auth.currentUser!.uid;
+    DocumentSnapshot userDoc =
+        await _firestore.collection('users').doc(userId).get();
+    List<dynamic> friends = userDoc['friends'] ?? [];
+    setState(() {
+      friendCount = friends.length;
     });
   }
 
@@ -66,6 +81,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     setState(() {
       pets = petsQuery.docs;
     });
+  }
+
+  // Verificar si ya son amigos o si hay una solicitud enviada
+  Future<void> _checkFriendStatus() async {
+    String userId = widget.userId ?? _auth.currentUser!.uid;
+    String currentUserId = _auth.currentUser!.uid;
+
+    // Verificar si ya hay una solicitud pendiente
+    QuerySnapshot requestQuery = await _firestore
+        .collection('friend_requests')
+        .where('fromUserId', isEqualTo: currentUserId)
+        .where('toUserId', isEqualTo: userId)
+        .get();
+
+    if (requestQuery.docs.isNotEmpty) {
+      setState(() {
+        requestSent = true;
+        requestId = requestQuery.docs.first.id; // Guardar el ID de la solicitud
+      });
+    }
+
+    // Verificar si ya son amigos
+    DocumentSnapshot userDoc =
+        await _firestore.collection('users').doc(userId).get();
+    List<dynamic> friends = userDoc['friends'] ?? [];
+    if (friends.contains(currentUserId)) {
+      setState(() {
+        isFriend = true;
+      });
+      return; // Ya es amigo, no se necesita verificar solicitudes
+    }
   }
 
   void _navigateToEditProfile() {
@@ -86,18 +132,87 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     ).then((_) => _loadUserProfile());
   }
 
+  // Enviar solicitud de amistad
+  Future<void> _sendFriendRequest() async {
+    String currentUserId = _auth.currentUser!.uid;
+    String userId = widget.userId ?? _auth.currentUser!.uid;
+
+    // Verifica si ya existe una solicitud pendiente
+    var existingRequest = await _firestore
+        .collection('friend_requests')
+        .where('fromUserId', isEqualTo: currentUserId)
+        .where('toUserId', isEqualTo: userId)
+        .get();
+
+    if (existingRequest.docs.isEmpty) {
+      DocumentReference requestRef =
+          await _firestore.collection('friend_requests').add({
+        'fromUserId': currentUserId,
+        'toUserId': userId,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      setState(() {
+        requestSent = true;
+        requestId = requestRef.id; // Guardar el ID de la solicitud
+      });
+
+      _showSnackbar(
+        'Solicitud enviada',
+        'La solicitud de amistad ha sido enviada con éxito.',
+        ContentType.success,
+      );
+    } else {
+      _showSnackbar(
+        'Ya enviada',
+        'Ya existe una solicitud de amistad pendiente.',
+        ContentType.warning,
+      );
+    }
+  }
+
+  // Eliminar solicitud de amistad
+  Future<void> _cancelFriendRequest() async {
+    if (requestId != null) {
+      await _firestore.collection('friend_requests').doc(requestId).delete();
+
+      setState(() {
+        requestSent = false;
+        requestId = null; // Resetear el estado
+      });
+
+      _showSnackbar(
+        'Solicitud eliminada',
+        'La solicitud de amistad ha sido eliminada.',
+        ContentType.success,
+      );
+    }
+  }
+
+  // Mostrar AwesomeSnackbar
+  void _showSnackbar(String title, String message, ContentType type) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 3),
+        content: AwesomeSnackbarContent(
+          title: title,
+          message: message,
+          contentType: type,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('@$username'),
         actions: [
-          if (isAdmin &&
-              !isOwner) // Mostrar el shield rojo si es administrador y no es el dueño
+          if (isAdmin && !isOwner)
             IconButton(
               icon: const Icon(Icons.verified_user, color: Colors.red),
-              onPressed:
-                  _navigateToAdminEditProfile, // Navegar a la pantalla de edición de admin
+              onPressed: _navigateToAdminEditProfile,
             ),
         ],
       ),
@@ -106,62 +221,108 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: profileImageUrl != null
-                        ? CachedNetworkImageProvider(profileImageUrl!)
-                        : const AssetImage('assets/default_profile.png')
-                            as ImageProvider,
-                  ),
-                  if (isOwner)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: _navigateToEditProfile,
-                        child: const CircleAvatar(
-                          radius: 15,
-                          backgroundColor: Colors.blue,
-                          child:
-                              Icon(Icons.edit, color: Colors.white, size: 15),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  profileName ?? '',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                Center(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundImage: profileImageUrl != null
+                            ? CachedNetworkImageProvider(profileImageUrl!)
+                            : const AssetImage('assets/default_profile.png')
+                                as ImageProvider,
+                      ),
+                      if (isOwner)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: _navigateToEditProfile,
+                            child: const CircleAvatar(
+                              radius: 15,
+                              backgroundColor: Colors.blue,
+                              child: Icon(Icons.edit,
+                                  color: Colors.white, size: 15),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 8), // Espacio entre el nombre y la patita
-                if (userRole ==
-                    'refugio') // Mostrar la patita si el rol es "refugio"
-                  const Tooltip(
-                    message: 'Refugio Verificado de MascotApp',
-                    triggerMode: TooltipTriggerMode.tap,
-                    child: Icon(Icons.pets, color: Colors.orange, size: 24),
+                const SizedBox(
+                    width: 10), // Espacio pequeño entre imagen y texto
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            profileName ?? '',
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(
+                              width: 8), // Espacio entre el nombre y la patita
+                          if (userRole ==
+                              'refugio') // Mostrar la patita si el rol es "refugio"
+                            const Tooltip(
+                              message: 'Refugio Verificado de MascotApp',
+                              triggerMode: TooltipTriggerMode.tap,
+                              child: Icon(Icons.pets,
+                                  color: Colors.brown, size: 24),
+                            ),
+                          if (userRole ==
+                              'admin') // Mostrar la patita si el rol es "refugio"
+                            const Tooltip(
+                              message: 'Administrador de MascotApp',
+                              triggerMode: TooltipTriggerMode.tap,
+                              child: Icon(Icons.verified_user,
+                                  color: Colors.red, size: 24),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        bio ?? '',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
                   ),
-                if (userRole ==
-                    'admin') // Mostrar la patita si el rol es "refugio"
-                  const Tooltip(
-                    message: 'Administrador de MascotApp',
-                    triggerMode: TooltipTriggerMode.tap,
-                    child:
-                        Icon(Icons.verified_user, color: Colors.red, size: 24),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    children: [
+                      Icon(Icons.group, size: 30, color: Colors.grey[700]),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$friendCount amigos',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(
+                          height: 10), // Espacio entre el contador y el botón
+                      if (!isOwner && !isFriend)
+                        ElevatedButton.icon(
+                          onPressed: requestSent
+                              ? _cancelFriendRequest
+                              : _sendFriendRequest,
+                          icon: Icon(
+                              requestSent ? Icons.cancel : Icons.person_add),
+                          label: Text(
+                              requestSent ? 'Cancelar Solicitud' : 'Añadir'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(150, 36),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                          ),
+                        ),
+                    ],
                   ),
+                ),
               ],
-            ),
-            Text(
-              bio ?? '',
-              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
             Text(
@@ -239,8 +400,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         icon = Icons.location_off;
         break;
       default:
-        return const SizedBox
-            .shrink(); // No mostrar nada si el estado es vacío o no reconocido
+        return const SizedBox.shrink();
     }
 
     return Container(
