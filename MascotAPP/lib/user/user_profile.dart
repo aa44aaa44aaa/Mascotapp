@@ -1,10 +1,10 @@
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart'; // Asegúrate de agregar este paquete en tu pubspec.yaml
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'user_edit.dart'; // Importar la pantalla de edición de perfil
-import '../pets/pet_profile.dart'; // Importar la pantalla del perfil de la mascota
+import 'user_edit.dart';
+import '../pets/pet_profile.dart';
 import '../admin/user_edit.dart';
 
 class UserProfileScreen extends StatefulWidget {

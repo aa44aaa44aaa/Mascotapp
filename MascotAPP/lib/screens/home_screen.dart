@@ -21,6 +21,7 @@ import '../admin/user_finder.dart';
 import '../admin/mascota_finder.dart';
 import '../admin/admin_email_edit.dart';
 import 'map_screen.dart';
+import '../user/solicitudes_amistad.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -538,6 +539,19 @@ class HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const MiniGamesScreen(),
+                  ),
+                );
+              },
+            ),
+          if (userRole == 'admin')
+            ListTile(
+              leading: const Icon(Icons.shield, color: Colors.red),
+              title: const Text('Solicitudes de amistad'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FriendRequestsPage(),
                   ),
                 );
               },
