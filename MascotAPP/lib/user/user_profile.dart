@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'user_edit.dart';
 import '../pets/pet_profile.dart';
 import '../admin/user_edit.dart';
+import 'amigos_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;
@@ -297,12 +298,32 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   flex: 1,
                   child: Column(
                     children: [
-                      Icon(Icons.group, size: 30, color: Colors.grey[700]),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$friendCount amigos',
-                        style: const TextStyle(fontSize: 14),
+                      GestureDetector(
+                        onTap: () {
+                          // Navegar a la pantalla de "Mis Amigos"
+                          String userId =
+                              widget.userId ?? _auth.currentUser!.uid;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  FriendsScreen(currentUserId: userId),
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Icon(Icons.group,
+                                size: 30, color: Colors.grey[700]),
+                            const SizedBox(height: 4),
+                            Text(
+                              '$friendCount amigos',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        ),
                       ),
+
                       const SizedBox(
                           height: 10), // Espacio entre el contador y el botón
                       if (!isOwner && !isFriend)
