@@ -66,35 +66,65 @@ class _PersonalFeedScreenState extends State<PersonalFeedScreen> {
     }
   }
 
-  // Obtener las mascotas de las que el usuario autenticado es fan
-  Future<void> _getFanPets() async {
+  // Obtener las mascotas de las que el usuario autenticado es fan y las mascotas de sus amigos
+  Future<void> _getFanAndFriendPets() async {
     var currentUser = _auth.currentUser;
+    List<String> friendsList = []; // Lista de IDs de amigos
+    List<String> fanPets =
+        []; // Lista de IDs de mascotas de las que el usuario es fan
+    List<String> friendPets =
+        []; // Lista de IDs de mascotas que pertenecen a amigos
+
     if (currentUser != null) {
-      QuerySnapshot petQuery = await _firestore
+      // Obtener la lista de amigos del usuario autenticado
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(currentUser.uid).get();
+      friendsList = List<String>.from(userDoc['friends'] ?? []);
+      print("Amigos: $friendsList");
+
+      // Obtener las mascotas de las que el usuario es fan
+      QuerySnapshot fanPetQuery = await _firestore
           .collection('pets')
           .where('fans',
               arrayContains:
-                  currentUser.uid) // Filtrar mascotas donde el usuario es fan
+                  currentUser.uid) // Mascotas donde el usuario es fan
           .get();
 
+      // Obtener las mascotas cuyos dueños son amigos del usuario
+      QuerySnapshot friendPetQuery = await _firestore
+          .collection('pets')
+          .where('owner',
+              whereIn:
+                  friendsList) // Mascotas que pertenecen a los amigos del usuario
+          .get();
+
+      // Separar las listas para depuración
+      fanPets = fanPetQuery.docs.map((doc) => doc.id).toList();
+      friendPets = friendPetQuery.docs.map((doc) => doc.id).toList();
+
+      // Combinar las listas de IDs de mascotas (fanPets y friendPets)
       setState(() {
-        _fanPets = petQuery.docs
-            .map((doc) => doc.id)
-            .toList(); // Guardar los IDs de mascotas
+        _fanPets = [...fanPets, ...friendPets]
+            .toSet()
+            .toList(); // Usar toSet para eliminar duplicados
       });
-      print("Mascotas que sigues:");
-      print(_fanPets);
+
+      // Imprimir las listas para depuración
+      print("Mascotas de las que eres fan:");
+      print(fanPets);
+      print("Mascotas que pertenecen a tus amigos:");
+      print(friendPets);
     }
   }
 
   Future<void> _fetchPage(DocumentSnapshot? pageKey) async {
     try {
       QuerySnapshot newPage;
-      await _getFanPets();
-      // Asegúrate de que se han cargado las mascotas de las que el usuario es fan
+      await _getFanAndFriendPets();
+      // Asegúrate de que se han cargado las mascotas de las que el usuario es fan o de amigos
       if (_fanPets.isEmpty) {
-        // Si no hay mascotas de las que el usuario es fan, no hay que cargar ningún post
-        print("Lista de fan vacia");
+        // Si no hay mascotas de las que el usuario es fan ni mascotas de amigos, no cargar posts
+        print("Lista de mascotas vacía");
         _pagingController.appendLastPage([]);
         return;
       }
@@ -109,7 +139,6 @@ class _PersonalFeedScreenState extends State<PersonalFeedScreen> {
             .orderBy('timestamp', descending: true)
             .limit(_initialPageSize)
             .get();
-        print(newPage);
       } else {
         newPage = await _firestore
             .collection('posts')
@@ -120,7 +149,6 @@ class _PersonalFeedScreenState extends State<PersonalFeedScreen> {
             .startAfterDocument(pageKey)
             .limit(_subsequentPageSize)
             .get();
-        print(newPage);
       }
 
       final isLastPage = newPage.docs.length <
@@ -133,7 +161,7 @@ class _PersonalFeedScreenState extends State<PersonalFeedScreen> {
       }
     } catch (error) {
       _pagingController.error = error;
-      print(error);
+      print('Error al cargar posts: $error');
     }
   }
 
