@@ -32,11 +32,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _checkFriendStatus(); // Verifica si ya son amigos o si hay una solicitud
     _loadUserProfile();
     _loadUserPets();
     _loadFriendCount();
     _checkIfAdmin();
-    _checkFriendStatus(); // Verifica si ya son amigos o si hay una solicitud
   }
 
   Future<void> _loadUserProfile() async {

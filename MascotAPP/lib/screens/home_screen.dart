@@ -41,6 +41,7 @@ class HomeScreenState extends State<HomeScreen> {
   int _pendingPostCount = 0;
   bool _isPetOwner = false;
   int _adoptionRequestCount = 0;
+  int _friendRequestCount = 0;
   int _adoptionFreshRequestCount = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -60,6 +61,7 @@ class HomeScreenState extends State<HomeScreen> {
       _checkIfPetOwner();
       _loadAdoptionRequests();
       _loadAdoptionFreshRequests();
+      _loadFriendRequests();
       _loadUserProfile();
     }
   }
@@ -74,6 +76,21 @@ class HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {
           _adoptionRequestCount = requests.docs.length;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadFriendRequests() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      QuerySnapshot requests = await _firestore
+          .collection('friend_requests')
+          .where('toUserId', isEqualTo: user.uid)
+          .get();
+      if (mounted) {
+        setState(() {
+          _friendRequestCount = requests.docs.length;
         });
       }
     }
@@ -288,6 +305,45 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+              ],
+            ),
+          if (_friendRequestCount > 0)
+            Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.group_add),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FriendRequestsPage(),
+                      ),
+                    ).then((value) => _loadFriendRequests());
+                  },
+                ),
+                Positioned(
+                  right: 11,
+                  top: 11,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 14,
+                      minHeight: 14,
+                    ),
+                    child: Text(
+                      '$_friendRequestCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               ],
             ),
           Stack(
