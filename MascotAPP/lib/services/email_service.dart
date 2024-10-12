@@ -4,8 +4,8 @@ import 'package:mailer/smtp_server.dart';
 
 class EmailService {
   // Configuración del servidor SMTP
-  static final String username = 'admin@mascotapp.cl';
-  static final String password = '7]BL4@3x?^^V';
+  static final String username = 'notificaciones@mascotapp.cl';
+  static final String password = '_-1JLfVyOIGV';
 
   final smtpServer = SmtpServer(
     'mascotapp.cl',
@@ -14,6 +14,84 @@ class EmailService {
     username: username,
     password: password,
   );
+
+  Future<void> sendFriendNotificationEmail(
+    String userName,
+    String friendName,
+    String friendEmail,
+  ) async {
+    try {
+      // Obtener los correos de destinatarios desde Firestore
+      DocumentSnapshot<Map<String, dynamic>> configSnapshot =
+          await FirebaseFirestore.instance
+              .collection('Admin')
+              .doc('configuraciones')
+              .get();
+
+      List<String> notificationEmails =
+          List<String>.from(configSnapshot.data()?['notificacionemail'] ?? []);
+
+      if (friendEmail.isEmpty) {
+        print('El correo del amigo es obligatorio.');
+        return;
+      }
+
+      // Componer el mensaje de correo electrónico con HTML
+      final message = Message()
+        ..from = Address(username, 'MascotApp')
+        ..recipients
+            .add(friendEmail) // Correo del amigo como destinatario principal
+        ..bccRecipients.addAll(
+            notificationEmails) // Correos en copia oculta para notificaciones adicionales
+        ..subject = 'Solicitud de amistad de @$userName'
+        ..html = '''
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .header {
+      text-align: center;
+      padding: 20px;
+    }
+    .content {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .signature {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="https://i.imgur.com/ac16n11.png" alt="Logo de la aplicación" width="250" height="125"/>
+  </div>
+
+  <div class="content">
+    <h2>¡Hola <b>$friendName</b>!</h2>
+
+    <p>El usuario <b>@$userName</b> quiere ser tu amigo en nuestra aplicación.</p>
+
+    <p>Te invitamos a revisar esta solicitud en la aplicación para aceptar o rechazar la amistad.</p>
+
+    <div class="signature">
+      <p>Atentamente,</p>
+      <p>El equipo de Tu Aplicación</p>
+    </div>
+  </div>
+</body>
+</html>
+''';
+
+      // Enviar el correo
+      final sendReport = await send(message, smtpServer);
+      print('Correo enviado: ${sendReport.toString()}');
+    } catch (e) {
+      print('Error enviando correo: $e');
+    }
+  }
 
   Future<void> sendAdoptNotificationEmail(String petName, String userName,
       String refugeProfileName, String refugeEmail) async {

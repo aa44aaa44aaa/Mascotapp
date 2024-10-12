@@ -7,6 +7,7 @@ import 'user_edit.dart';
 import '../pets/pet_profile.dart';
 import '../admin/user_edit.dart';
 import 'amigos_screen.dart';
+import '../services/email_service.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;
@@ -157,6 +158,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         requestSent = true;
         requestId = requestRef.id; // Guardar el ID de la solicitud
       });
+
+      // Obtener el nombre de usuario del remitente
+      var senderDoc =
+          await _firestore.collection('users').doc(currentUserId).get();
+      String senderUsername = senderDoc.data()?['username'] ?? 'Usuario';
+
+      // Obtener el nombre del destinatario
+      var recipientDoc = await _firestore.collection('users').doc(userId).get();
+      String recipientName = recipientDoc.data()?['profileName'] ?? 'Usuario';
+
+      // Obtener el correo electrónico del destinatario
+      String recipientEmail = recipientDoc.data()?['email'];
+
+      // Enviar el correo de notificación
+      final emailService = EmailService();
+      await emailService.sendFriendNotificationEmail(
+          senderUsername, // Nombre del usuario que envía la solicitud
+          recipientName, // Nombre del destinatario de la solicitud
+          recipientEmail // Correo electrónico del destinatario
+          );
 
       _showSnackbar(
         'Solicitud enviada',
@@ -331,10 +352,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           onPressed: requestSent
                               ? _cancelFriendRequest
                               : _sendFriendRequest,
-                          icon: Icon(
-                              requestSent ? Icons.cancel : Icons.person_add),
-                          label: Text(
-                              requestSent ? 'Cancelar Solicitud' : 'Añadir'),
+                          icon: Icon(requestSent
+                              ? Icons.group_remove
+                              : Icons.person_add),
+                          label: Text(requestSent ? 'Quitar' : 'Añadir'),
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(150, 36),
                             padding: const EdgeInsets.symmetric(horizontal: 5),
