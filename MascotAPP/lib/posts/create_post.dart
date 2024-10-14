@@ -11,6 +11,7 @@ import 'dart:typed_data';
 //import 'package:image/image.dart' as img;
 import '../screens/home_screen.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import '../utils/mascotapp_colors.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -272,7 +273,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                     icon = Icons.book;
                                     break;
                                   case 'adopcion':
-                                    iconColor = Colors.brown;
+                                    iconColor = MascotAppColors.refugio;
                                     icon = Icons.pets;
                                     break;
                                 }

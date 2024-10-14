@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'login/login_screen.dart';
 import 'login/register_screen.dart';
 import 'screens/home_screen.dart';
+import 'utils/mascotapp_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mascotapp',
+      title: 'MascotApp',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -54,7 +55,8 @@ class MainMenu extends StatefulWidget {
   _MainMenuState createState() => _MainMenuState();
 }
 
-class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin {
+class _MainMenuState extends State<MainMenu>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _animation;
 
@@ -83,14 +85,13 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MascotAppColors.background,
       body: Column(
         children: [
+          const SizedBox(height: 50),
           Expanded(
-            flex: 4,
-            child: SvgPicture.asset(
-              'assets/login.svg',
-              height: 250,
-            ),
+            flex: 3,
+            child: Image.asset('assets/logos/Only-Icon.png'),
           ),
           Expanded(
             flex: 3,
@@ -101,45 +102,43 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
                 children: [
                   SlideTransition(
                     position: _animation,
-                    child: const Text(
-                      'MascotAPP',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: Image.asset('assets/logos/Only-Text.png'),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: MascotAppColors.primary,
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
                     ),
-                    child: const Text('Ingresar', style: TextStyle(fontSize: 18, color: Colors.white)),
+                    child: const Text('Ingresar',
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
                       );
                     },
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: MascotAppColors.primary,
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
                     ),
-                    child: const Text('Registrarse', style: TextStyle(fontSize: 18, color: Colors.white)),
+                    child: const Text('Registrarse',
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const RegisterScreen()),
                       );
                     },
                   ),

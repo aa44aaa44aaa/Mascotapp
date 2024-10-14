@@ -83,7 +83,7 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 flutter_launcher_icons:
   android: true
-  image_path: 'assets/logo.png'
+  image_path: 'assets/logos/Logo-APP.png'
 # The following section is specific to Flutter packages.
 flutter:
 
@@ -104,6 +104,9 @@ flutter:
     - assets/profile.svg
     - assets/adopt.svg
     - assets/default_profile.png
+    - assets/logos/mascotapp-logo.png
+    - assets/logos/Only-Icon.png
+    - assets/logos/Only-Text.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

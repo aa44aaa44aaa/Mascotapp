@@ -8,6 +8,7 @@ import '../pets/pet_profile.dart';
 import '../admin/user_edit.dart';
 import 'amigos_screen.dart';
 import '../services/email_service.dart';
+import '../utils/mascotapp_colors.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;
@@ -233,7 +234,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         actions: [
           if (isAdmin && !isOwner)
             IconButton(
-              icon: const Icon(Icons.verified_user, color: Colors.red),
+              icon:
+                  const Icon(Icons.verified_user, color: MascotAppColors.admin),
               onPressed: _navigateToAdminEditProfile,
             ),
         ],
@@ -295,7 +297,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               message: 'Refugio Verificado de MascotApp',
                               triggerMode: TooltipTriggerMode.tap,
                               child: Icon(Icons.pets,
-                                  color: Colors.brown, size: 24),
+                                  color: MascotAppColors.refugio, size: 24),
                             ),
                           if (userRole ==
                               'admin') // Mostrar la patita si el rol es "refugio"
@@ -303,7 +305,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               message: 'Administrador de MascotApp',
                               triggerMode: TooltipTriggerMode.tap,
                               child: Icon(Icons.verified_user,
-                                  color: Colors.red, size: 24),
+                                  color: MascotAppColors.admin, size: 24),
                             ),
                         ],
                       ),
@@ -427,7 +429,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     switch (estado) {
       case 'adopcion':
-        bgColor = Colors.brown;
+        bgColor = MascotAppColors.refugio;
         text = 'En adopción';
         icon = Icons.pets;
         break;

@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'register_screen.dart';
 import 'recovery_screen.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import '../utils/mascotapp_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -101,6 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MascotAppColors.background,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -145,16 +147,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 25.0),
               ElevatedButton(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: MascotAppColors.primary,
                   minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
                 ),
-                child: const Text('Ingresar'),
+                child: const Text('Ingresar',
+                    style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
               const SizedBox(height: 16.0),
               TextButton(
@@ -165,9 +169,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         builder: (context) => const RecoveryScreen()),
                   );
                 },
-                child: const Text("¿Olvidaste tu contraseña?"),
+                child: const Text("¿Olvidaste tu contraseña?",
+                    style:
+                        TextStyle(color: MascotAppColors.secondarytextColor)),
               ),
-              const SizedBox(height: 16.0),
+              //const SizedBox(height: 12.0),
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -176,7 +182,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         builder: (context) => const RegisterScreen()),
                   );
                 },
-                child: const Text("Aún no tienes cuenta? Registrate!"),
+                child: const Text("Aún no tienes cuenta? Registrate!",
+                    style:
+                        TextStyle(color: MascotAppColors.secondarytextColor)),
               ),
             ],
           ),

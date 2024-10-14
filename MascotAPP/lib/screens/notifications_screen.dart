@@ -7,6 +7,7 @@ import 'package:timeago/timeago.dart' as timeago_es;
 import '../posts/single_post_screen.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import '../pets/pet_profile.dart';
+import '../utils/mascotapp_colors.dart';
 
 class NotificationsScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -303,7 +304,7 @@ class NotificationsScreen extends StatelessWidget {
                                   : Icons.comment,
                               size: 40,
                               color: notificationData['type'] == 'like'
-                                  ? Colors.red
+                                  ? MascotAppColors.like
                                   : Colors.blue,
                             ),
                             title: Text(notificationData['type'] == 'like'

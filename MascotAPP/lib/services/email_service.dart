@@ -66,7 +66,7 @@ class EmailService {
 </head>
 <body>
   <div class="header">
-    <img src="https://i.imgur.com/ac16n11.png" alt="Logo de la aplicación" width="250" height="125"/>
+    <img src="https://i.imgur.com/PM9oteC.png" alt="Logo de la aplicación" width="250" height="125"/>
   </div>
 
   <div class="content">
@@ -140,7 +140,7 @@ class EmailService {
 </head>
 <body>
   <div class="header">
-    <img src="https://i.imgur.com/ac16n11.png" alt="MascotApp Logo" width="250" height="125"/>
+    <img src="https://i.imgur.com/PM9oteC.png" alt="MascotApp Logo" width="250" height="125"/>
   </div>
 
   <div class="content">
@@ -218,7 +218,7 @@ class EmailService {
       </head>
       <body>
         <div class="header">
-          <img src="https://i.imgur.com/ac16n11.png" alt="MascotApp Logo" width="250" height="125"/>
+          <img src="https://i.imgur.com/PM9oteC.png" alt="MascotApp Logo" width="250" height="125"/>
         </div>
 
         <div class="content">
@@ -307,7 +307,7 @@ class EmailService {
 </head>
 <body>
   <div class="header">
-    <img src="https://i.imgur.com/ac16n11.png" alt="MascotApp Logo" width="250" height="125"/>
+    <img src="https://i.imgur.com/PM9oteC.png" alt="MascotApp Logo" width="250" height="125"/>
   </div>
 
   <div class="content">

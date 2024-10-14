@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../pets/pet_register.dart';
 import '../pets/edit_pet.dart';
 import '../pets/pet_profile.dart';
+import '../utils/mascotapp_colors.dart';
 
 class PetsScreen extends StatefulWidget {
   const PetsScreen({super.key});
@@ -73,7 +74,7 @@ class _PetsScreenState extends State<PetsScreen> {
                   labelText = 'En memoria';
                   break;
                 case 'adopcion':
-                  labelColor = Colors.brown;
+                  labelColor = MascotAppColors.refugio;
                   icon = Icons.pets;
                   labelText = 'En adopción';
                   break;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../user/user_profile.dart'; // Importar el perfil de usuario
+import '../utils/mascotapp_colors.dart';
 
 class FriendsScreen extends StatefulWidget {
   final String currentUserId;
@@ -52,7 +53,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     switch (userRole) {
       case 'admin':
-        return const Icon(Icons.verified_user, color: Colors.red, size: 20);
+        return const Icon(Icons.verified_user,
+            color: MascotAppColors.admin, size: 20);
       case 'refugio':
         return const Icon(Icons.pets, color: Colors.orange, size: 20);
       default:

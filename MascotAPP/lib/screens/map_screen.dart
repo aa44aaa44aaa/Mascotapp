@@ -8,6 +8,7 @@ import '../pets/pet_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import '../user/user_profile.dart';
+import '../utils/mascotapp_colors.dart';
 
 const MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoiYWE0NGFhYTQ0YWFhIiwiYSI6ImNtMXNsa2NvNDA0dzQyb3E0am4zdTc5ZmcifQ.DkLqjouazVETO5EfYKTmhw';
@@ -261,12 +262,12 @@ class _MapScreenState extends State<MapScreen> {
     if (estado != null) {
       switch (estado) {
         case 'perdido':
-          borderColor = Colors.red;
+          borderColor = MascotAppColors.perdido;
           icon = Icons.location_off;
           message = 'Me perdí! :(';
           break;
         case 'adopcion':
-          borderColor = Colors.brown;
+          borderColor = MascotAppColors.refugio;
           icon = Icons.volunteer_activism;
           message = 'Estoy en adopción!';
           break;
@@ -293,7 +294,7 @@ class _MapScreenState extends State<MapScreen> {
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
-                  color: Colors.greenAccent, width: 4), // Borde verde
+                  color: MascotAppColors.refugio, width: 4), // Borde verde
               borderRadius: BorderRadius.circular(50),
             ),
           ),
@@ -309,7 +310,7 @@ class _MapScreenState extends State<MapScreen> {
             padding: const EdgeInsets.all(4), // Espaciado dentro del ícono
             child: Icon(
               shelterIcon,
-              color: Colors.greenAccent,
+              color: MascotAppColors.refugio,
               size: 16, // Tamaño del ícono pequeño
             ),
           ),
@@ -498,7 +499,7 @@ class _MapScreenState extends State<MapScreen> {
                   isActive: showAdoption,
                   icon: Icons.volunteer_activism,
                   label: "Adopción",
-                  color: Colors.brown,
+                  color: MascotAppColors.refugio,
                   onPressed: () {
                     setState(() {
                       showAdoption = !showAdoption; // Toggle Adopción
@@ -510,7 +511,7 @@ class _MapScreenState extends State<MapScreen> {
                   isActive: showLost,
                   icon: Icons.location_off,
                   label: "Perdido",
-                  color: Colors.red,
+                  color: MascotAppColors.perdido,
                   onPressed: () {
                     setState(() {
                       showLost = !showLost; // Toggle Perdido
@@ -522,7 +523,7 @@ class _MapScreenState extends State<MapScreen> {
                   isActive: showShelters,
                   icon: Icons.pets,
                   label: "Refugios",
-                  color: Colors.green,
+                  color: MascotAppColors.refugio,
                   onPressed: () {
                     setState(() {
                       showShelters = !showShelters; // Toggle Refugios
@@ -684,7 +685,8 @@ class _MapScreenState extends State<MapScreen> {
                                     const SizedBox(width: 4),
                                     if (ownerRole == 'refugio')
                                       const Icon(Icons.pets,
-                                          color: Colors.brown, size: 16),
+                                          color: MascotAppColors.refugio,
+                                          size: 16),
                                   ],
                                 ),
                                 Row(
@@ -744,21 +746,21 @@ class _MapScreenState extends State<MapScreen> {
                               padding: const EdgeInsets.symmetric(
                                   vertical: 4, horizontal: 8),
                               decoration: BoxDecoration(
-                                color: Colors.greenAccent.withOpacity(0.2),
+                                color: MascotAppColors.refugio.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
                                   const Icon(
                                     Icons.pets,
-                                    color: Colors.green,
+                                    color: MascotAppColors.refugio,
                                     size: 16,
                                   ),
                                   const SizedBox(width: 4),
                                   const Text(
                                     'Refugio',
                                     style: TextStyle(
-                                      color: Colors.green,
+                                      color: MascotAppColors.refugio,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),

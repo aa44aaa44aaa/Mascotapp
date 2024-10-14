@@ -6,6 +6,7 @@ import 'package:timeago/timeago.dart' as timeago_es;
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../user/user_profile.dart'; // Importar la pantalla de perfil
+import '../utils/mascotapp_colors.dart';
 
 class FriendRequestsPage extends StatefulWidget {
   @override
@@ -162,14 +163,14 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
                         const Tooltip(
                           message: 'Refugio Verificado',
                           triggerMode: TooltipTriggerMode.tap,
-                          child:
-                              Icon(Icons.pets, color: Colors.brown, size: 18),
+                          child: Icon(Icons.pets,
+                              color: MascotAppColors.refugio, size: 18),
                         ),
                       ],
                       if (fromUserRole == 'admin') ...[
                         const SizedBox(width: 4),
                         const Icon(Icons.verified_user,
-                            color: Colors.red, size: 18),
+                            color: MascotAppColors.admin, size: 18),
                       ],
                     ],
                   ),

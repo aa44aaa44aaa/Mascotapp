@@ -9,6 +9,7 @@ import '../pets/pet_profile.dart';
 import '../user/user_profile.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../services/notification_service.dart';
+import '../utils/mascotapp_colors.dart';
 
 class PersonalFeedScreen extends StatefulWidget {
   const PersonalFeedScreen({super.key});
@@ -229,7 +230,7 @@ class _PersonalFeedScreenState extends State<PersonalFeedScreen> {
                           labelText = 'En memoria';
                           break;
                         case 'adopcion':
-                          labelColor = Colors.brown;
+                          labelColor = MascotAppColors.refugio;
                           icon = Icons.pets;
                           labelText = 'En adopción';
                           break;
@@ -305,13 +306,13 @@ class _PersonalFeedScreenState extends State<PersonalFeedScreen> {
                                         if (role == 'refugio') ...[
                                           const SizedBox(width: 5),
                                           const Icon(Icons.pets,
-                                              color: Colors.brown,
+                                              color: MascotAppColors.refugio,
                                               size: 16), // Patita icono
                                         ],
                                         if (role == 'admin') ...[
                                           const SizedBox(width: 5),
                                           const Icon(Icons.verified_user,
-                                              color: Colors.red,
+                                              color: MascotAppColors.admin,
                                               size: 16), // Patita icono
                                         ],
                                       ],

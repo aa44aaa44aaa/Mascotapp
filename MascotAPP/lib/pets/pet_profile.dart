@@ -1,3 +1,4 @@
+import 'package:Mascotapp/utils/mascotapp_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,7 @@ import '../applications/applyadopt_screen.dart';
 import '../admin/mascota_edit.dart';
 import 'edit_pet.dart';
 import '../services/notification_service.dart';
+import '../utils/mascotapp_colors.dart';
 
 class PetProfileScreen extends StatefulWidget {
   final String petId;
@@ -154,7 +156,8 @@ class _PetProfileScreenState extends State<PetProfileScreen>
         actions: [
           if (isAdmin && !isOwner)
             IconButton(
-              icon: const Icon(Icons.verified_user, color: Colors.red),
+              icon:
+                  const Icon(Icons.verified_user, color: MascotAppColors.admin),
               onPressed: _navigateToAdminEditProfile,
             ),
           if (isOwner)
@@ -234,7 +237,7 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                 message = 'En memoria';
                 break;
               case 'adopcion':
-                borderColor = Colors.brown;
+                borderColor = MascotAppColors.refugio;
                 icon = Icons.volunteer_activism;
                 message = 'Estoy en adopción!';
                 break;
@@ -388,13 +391,15 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                                           message: 'Refugio Verificado',
                                           triggerMode: TooltipTriggerMode.tap,
                                           child: const Icon(Icons.pets,
-                                              color: Colors.brown, size: 18),
+                                              color: MascotAppColors.refugio,
+                                              size: 18),
                                         ),
                                       ],
                                       if (ownerRole == 'admin') ...[
                                         const SizedBox(width: 1),
                                         const Icon(Icons.verified_user,
-                                            color: Colors.red, size: 18),
+                                            color: MascotAppColors.admin,
+                                            size: 18),
                                       ],
                                     ],
                                   ),

@@ -9,6 +9,7 @@ import '../pets/pet_profile.dart';
 import '../user/user_profile.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../services/notification_service.dart';
+import '../utils/mascotapp_colors.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -170,7 +171,7 @@ class _FeedScreenState extends State<FeedScreen> {
                           labelText = 'En memoria';
                           break;
                         case 'adopcion':
-                          labelColor = Colors.brown;
+                          labelColor = MascotAppColors.refugio;
                           icon = Icons.pets;
                           labelText = 'En adopción';
                           break;
@@ -220,7 +221,10 @@ class _FeedScreenState extends State<FeedScreen> {
                                     },
                                     child: Row(
                                       children: [
-                                        Text(pet['petName']),
+                                        Text(pet['petName'],
+                                            style: TextStyle(
+                                                color:
+                                                    MascotAppColors.textColor)),
                                         if (isVerified) ...[
                                           const SizedBox(width: 5),
                                           Icon(Icons.verified,
@@ -242,17 +246,20 @@ class _FeedScreenState extends State<FeedScreen> {
                                     },
                                     child: Row(
                                       children: [
-                                        Text('@${user['username']}'),
+                                        Text('@${user['username']}',
+                                            style: TextStyle(
+                                                color: MascotAppColors
+                                                    .secondarytextColor)),
                                         if (role == 'refugio') ...[
                                           const SizedBox(width: 5),
                                           const Icon(Icons.pets,
-                                              color: Colors.brown,
+                                              color: MascotAppColors.refugio,
                                               size: 16), // Patita icono
                                         ],
                                         if (role == 'admin') ...[
                                           const SizedBox(width: 5),
                                           const Icon(Icons.verified_user,
-                                              color: Colors.red,
+                                              color: MascotAppColors.admin,
                                               size: 16), // Patita icono
                                         ],
                                       ],
@@ -310,18 +317,23 @@ class _FeedScreenState extends State<FeedScreen> {
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: Text(post['text'] ?? ''),
+                                  child: Text(post['text'] ?? '',
+                                      style: TextStyle(
+                                          color: MascotAppColors.textColor)),
                                 ),
                                 ButtonBar(
                                   children: [
-                                    Text(timeAgo),
+                                    Text(timeAgo,
+                                        style: TextStyle(
+                                            color: MascotAppColors
+                                                .secondarytextColor)),
                                     IconButton(
                                       icon: Icon(
                                         likedByCurrentUser
                                             ? Icons.favorite
                                             : Icons.favorite_outline,
                                         color: likedByCurrentUser
-                                            ? Colors.red
+                                            ? MascotAppColors.like
                                             : null,
                                       ),
                                       onPressed: () {
@@ -332,7 +344,10 @@ class _FeedScreenState extends State<FeedScreen> {
                                             postedBy);
                                       },
                                     ),
-                                    Text('$likeCount Me gusta'),
+                                    Text('$likeCount Me gusta',
+                                        style: TextStyle(
+                                            color: MascotAppColors
+                                                .secondarytextColor)),
                                     IconButton(
                                       icon: const Icon(Icons.comment),
                                       onPressed: () {
@@ -854,7 +869,7 @@ class _FeedScreenState extends State<FeedScreen> {
     setState(() {
       _animationStates[postId] = AnimationState(
         visible: true,
-        color: likedByCurrentUser ? Colors.grey : Colors.red,
+        color: likedByCurrentUser ? Colors.grey : MascotAppColors.like,
         icon: likedByCurrentUser ? Icons.favorite_border : Icons.favorite,
       );
     });

@@ -12,6 +12,7 @@ import 'dart:async';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import '../utils/mascotapp_colors.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -304,8 +305,10 @@ class _RegisterScreenState extends State<RegisterScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MascotAppColors.background,
       appBar: AppBar(
         title: const Text('Registro'),
+        backgroundColor: MascotAppColors.background,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -331,8 +334,12 @@ class _RegisterScreenState extends State<RegisterScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text('Bienvenid@ a MascotAPP!'),
-            const SizedBox(height: 16.0),
+            const Text('Bienvenid@ a'),
+            Image.asset(
+              'assets/logos/Only-Text.png',
+              width: 150,
+            ),
+            const SizedBox(height: 2.0),
             SvgPicture.asset(
               'assets/cat.svg', // Assumed your SVG image path
               height: 100,
@@ -391,12 +398,14 @@ class _RegisterScreenState extends State<RegisterScreen>
             ElevatedButton(
               onPressed: _nextPage,
               style: ElevatedButton.styleFrom(
+                backgroundColor: MascotAppColors.primary,
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
               ),
-              child: const Text('Siguiente'),
+              child: const Text('Siguiente',
+                  style: TextStyle(fontSize: 18, color: Colors.white)),
             ),
           ],
         ),
@@ -510,22 +519,26 @@ class _RegisterScreenState extends State<RegisterScreen>
                 ElevatedButton(
                   onPressed: _previousPage,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: MascotAppColors.primary,
                     minimumSize: const Size(150, 50),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
-                  child: const Text('Anterior'),
+                  child: const Text('Anterior',
+                      style: TextStyle(fontSize: 18, color: Colors.white)),
                 ),
                 ElevatedButton(
                   onPressed: _nextPage,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: MascotAppColors.primary,
                     minimumSize: const Size(150, 50),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
-                  child: const Text('Siguiente'),
+                  child: const Text('Siguiente',
+                      style: TextStyle(fontSize: 18, color: Colors.white)),
                 ),
               ],
             ),
@@ -565,23 +578,27 @@ class _RegisterScreenState extends State<RegisterScreen>
             ElevatedButton(
               onPressed: _register,
               style: ElevatedButton.styleFrom(
+                backgroundColor: MascotAppColors.primary,
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
               ),
-              child: const Text('Registrar'),
+              child: const Text('Registrar',
+                  style: TextStyle(fontSize: 18, color: Colors.white)),
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _previousPage,
               style: ElevatedButton.styleFrom(
+                backgroundColor: MascotAppColors.primary,
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
               ),
-              child: const Text('Anterior'),
+              child: const Text('Anterior',
+                  style: TextStyle(fontSize: 18, color: Colors.white)),
             ),
           ],
         ),

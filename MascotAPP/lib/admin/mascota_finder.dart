@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../pets/pet_profile.dart'; // Importar el perfil de mascotas
+import '../utils/mascotapp_colors.dart';
 
 class PetSearchScreen extends StatefulWidget {
   @override
@@ -53,7 +54,7 @@ class _PetSearchScreenState extends State<PetSearchScreen> {
     // Asignar el color y el ícono basados en el estado de la mascota
     switch (estado) {
       case 'adopcion':
-        bgColor = Colors.brown;
+        bgColor = MascotAppColors.refugio;
         text = 'En adopción';
         icon = Icons.volunteer_activism;
         break;

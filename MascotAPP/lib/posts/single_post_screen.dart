@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../user/user_profile.dart';
 import '../services/notification_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../utils/mascotapp_colors.dart';
 
 class SinglePostScreen extends StatefulWidget {
   final String postId;
@@ -574,7 +575,7 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: Colors.brown,
+                                  color: MascotAppColors.refugio,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Row(

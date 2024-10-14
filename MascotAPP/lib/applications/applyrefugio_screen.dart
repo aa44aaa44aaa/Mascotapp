@@ -11,6 +11,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import '../utils/mascotapp_colors.dart';
 
 const MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoiYWE0NGFhYTQ0YWFhIiwiYSI6ImNtMXNsa2NvNDA0dzQyb3E0am4zdTc5ZmcifQ.DkLqjouazVETO5EfYKTmhw';
@@ -384,7 +385,7 @@ class _ApplyRefugioScreenState extends State<ApplyRefugioScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.pets, color: Colors.brown, size: 50),
+              Icon(Icons.pets, color: MascotAppColors.refugio, size: 50),
               const SizedBox(width: 16),
               Flexible(
                 child: Column(

@@ -22,6 +22,7 @@ import '../admin/mascota_finder.dart';
 import '../admin/admin_email_edit.dart';
 import 'map_screen.dart';
 import '../user/solicitudes_amistad.dart';
+import '../utils/mascotapp_colors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -251,11 +252,13 @@ class HomeScreenState extends State<HomeScreen> {
 
     if (user == null) {
       return const Scaffold(
+        backgroundColor: MascotAppColors.background,
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
+      backgroundColor: MascotAppColors.background,
       key: _scaffoldKey,
       endDrawer: _buildDrawer(),
       drawerEdgeDragWidth: _selectedIndex == 4
@@ -264,7 +267,8 @@ class HomeScreenState extends State<HomeScreen> {
               .size
               .width, // Swipe activado en otras pantallas// Swipe para abrir drawer
       appBar: AppBar(
-        title: const Text('MascotAPP'),
+        backgroundColor: MascotAppColors.background,
+        title: Image.asset('assets/logos/mascotapp-logo.png', height: 40),
         automaticallyImplyLeading: false,
         actions: [
           if (userRole == 'refugio' || _adoptionRequestCount > 0)
@@ -460,7 +464,7 @@ class HomeScreenState extends State<HomeScreen> {
                     right: 0,
                     child: Icon(
                       Icons.verified_user,
-                      color: Colors.red,
+                      color: MascotAppColors.admin,
                       size: 20,
                     ),
                   ),
@@ -509,7 +513,8 @@ class HomeScreenState extends State<HomeScreen> {
           //),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.red, // Color del icono seleccionado
+        selectedItemColor:
+            MascotAppColors.primary, // Color del icono seleccionado
         unselectedItemColor:
             Colors.grey, // Color de los iconos no seleccionados
         backgroundColor: Colors.white, // Fondo de la barra de navegación
@@ -562,7 +567,7 @@ class HomeScreenState extends State<HomeScreen> {
           // Opción de Optimización de Imágenes solo para admin
           if (userRole == 'admin')
             ListTile(
-              leading: const Icon(Icons.shield, color: Colors.red),
+              leading: const Icon(Icons.shield, color: MascotAppColors.admin),
               title: const Text('Buscador de usuarios'),
               onTap: () {
                 Navigator.push(
@@ -575,7 +580,7 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           if (userRole == 'admin')
             ListTile(
-              leading: const Icon(Icons.shield, color: Colors.red),
+              leading: const Icon(Icons.shield, color: MascotAppColors.admin),
               title: const Text('Buscador de mascotas'),
               onTap: () {
                 Navigator.push(
@@ -588,7 +593,7 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           if (userRole == 'admin')
             ListTile(
-              leading: const Icon(Icons.shield, color: Colors.red),
+              leading: const Icon(Icons.shield, color: MascotAppColors.admin),
               title: const Text('Minigames (Private)'),
               onTap: () {
                 Navigator.push(
@@ -601,7 +606,7 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           if (userRole == 'admin')
             ListTile(
-              leading: const Icon(Icons.shield, color: Colors.red),
+              leading: const Icon(Icons.shield, color: MascotAppColors.admin),
               title: const Text('Solicitudes de amistad'),
               onTap: () {
                 Navigator.push(
@@ -614,7 +619,7 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           if (userRole == 'admin')
             ListTile(
-              leading: const Icon(Icons.shield, color: Colors.red),
+              leading: const Icon(Icons.shield, color: MascotAppColors.admin),
               title: const Text('Solicitudes de Refugio'),
               onTap: () {
                 Navigator.push(
@@ -627,7 +632,7 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           if (userRole == 'admin')
             ListTile(
-              leading: const Icon(Icons.shield, color: Colors.red),
+              leading: const Icon(Icons.shield, color: MascotAppColors.admin),
               title: const Text('Lista de correos notificaciones admin'),
               onTap: () {
                 Navigator.push(
