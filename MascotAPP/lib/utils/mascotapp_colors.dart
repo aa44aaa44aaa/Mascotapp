@@ -28,9 +28,6 @@ class MascotAppColors {
   /* Color de fondo: para la interfaz principal */
   static const Color background = Color(0xFFF5F5F5); // Gris Medio
 
-  /* Refugio */
-  static const Color refugio = Color(0xFF1565C0); // Azul Marino
-
   /* Admin */
   static const Color admin = Color(0xFFD32F2F); // Rojo
 
@@ -39,4 +36,10 @@ class MascotAppColors {
 
   /* Perdido */
   static const Color perdido = Color(0xFFFF4D4D); // Rojo Coral
+
+  /* Adopción */
+  static const Color adopcion = Color(0xFF6D4C41); // Café Tierra
+
+  /* Refugio */
+  static const Color refugio = Color(0xFF1565C0); // Azul Marino
 }

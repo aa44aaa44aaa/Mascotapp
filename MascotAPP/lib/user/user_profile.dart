@@ -429,7 +429,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     switch (estado) {
       case 'adopcion':
-        bgColor = MascotAppColors.refugio;
+        bgColor = MascotAppColors.adopcion;
         text = 'En adopción';
         icon = Icons.pets;
         break;

@@ -54,7 +54,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
         return const Icon(Icons.verified_user,
             color: MascotAppColors.admin, size: 20);
       case 'refugio':
-        return const Icon(Icons.pets, color: Colors.orange, size: 20);
+        return const Icon(Icons.pets, color: MascotAppColors.refugio, size: 20);
       default:
         return const SizedBox.shrink();
     }

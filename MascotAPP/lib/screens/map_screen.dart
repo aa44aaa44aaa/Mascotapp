@@ -267,7 +267,7 @@ class _MapScreenState extends State<MapScreen> {
           message = 'Me perdí! :(';
           break;
         case 'adopcion':
-          borderColor = MascotAppColors.refugio;
+          borderColor = MascotAppColors.adopcion;
           icon = Icons.volunteer_activism;
           message = 'Estoy en adopción!';
           break;
@@ -499,7 +499,7 @@ class _MapScreenState extends State<MapScreen> {
                   isActive: showAdoption,
                   icon: Icons.volunteer_activism,
                   label: "Adopción",
-                  color: MascotAppColors.refugio,
+                  color: MascotAppColors.adopcion,
                   onPressed: () {
                     setState(() {
                       showAdoption = !showAdoption; // Toggle Adopción

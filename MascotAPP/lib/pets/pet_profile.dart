@@ -237,7 +237,7 @@ class _PetProfileScreenState extends State<PetProfileScreen>
                 message = 'En memoria';
                 break;
               case 'adopcion':
-                borderColor = MascotAppColors.refugio;
+                borderColor = MascotAppColors.adopcion;
                 icon = Icons.volunteer_activism;
                 message = 'Estoy en adopción!';
                 break;

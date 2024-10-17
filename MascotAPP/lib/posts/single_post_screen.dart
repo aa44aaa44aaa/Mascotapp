@@ -575,7 +575,7 @@ class _SinglePostScreenState extends State<SinglePostScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: MascotAppColors.refugio,
+                                  color: MascotAppColors.adopcion,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Row(

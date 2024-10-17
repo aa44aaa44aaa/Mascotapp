@@ -230,7 +230,7 @@ class _PersonalFeedScreenState extends State<PersonalFeedScreen> {
                           labelText = 'En memoria';
                           break;
                         case 'adopcion':
-                          labelColor = MascotAppColors.refugio;
+                          labelColor = MascotAppColors.adopcion;
                           icon = Icons.pets;
                           labelText = 'En adopción';
                           break;

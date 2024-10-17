@@ -171,7 +171,7 @@ class _FeedScreenState extends State<FeedScreen> {
                           labelText = 'En memoria';
                           break;
                         case 'adopcion':
-                          labelColor = MascotAppColors.refugio;
+                          labelColor = MascotAppColors.adopcion;
                           icon = Icons.pets;
                           labelText = 'En adopción';
                           break;

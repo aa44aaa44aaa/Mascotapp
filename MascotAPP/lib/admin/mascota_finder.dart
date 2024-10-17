@@ -54,7 +54,7 @@ class _PetSearchScreenState extends State<PetSearchScreen> {
     // Asignar el color y el ícono basados en el estado de la mascota
     switch (estado) {
       case 'adopcion':
-        bgColor = MascotAppColors.refugio;
+        bgColor = MascotAppColors.adopcion;
         text = 'En adopción';
         icon = Icons.volunteer_activism;
         break;
@@ -64,7 +64,7 @@ class _PetSearchScreenState extends State<PetSearchScreen> {
         icon = Icons.book;
         break;
       case 'perdido':
-        bgColor = Colors.red;
+        bgColor = MascotAppColors.perdido;
         text = 'Me perdí :(';
         icon = Icons.location_off;
         break;

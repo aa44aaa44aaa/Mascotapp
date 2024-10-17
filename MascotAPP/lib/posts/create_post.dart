@@ -273,7 +273,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                     icon = Icons.book;
                                     break;
                                   case 'adopcion':
-                                    iconColor = MascotAppColors.refugio;
+                                    iconColor = MascotAppColors.adopcion;
                                     icon = Icons.pets;
                                     break;
                                 }
