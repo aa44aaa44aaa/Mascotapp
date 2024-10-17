@@ -23,6 +23,7 @@ import '../admin/admin_email_edit.dart';
 import 'map_screen.dart';
 import '../user/solicitudes_amistad.dart';
 import '../utils/mascotapp_colors.dart';
+import '../screens/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -244,6 +245,7 @@ class HomeScreenState extends State<HomeScreen> {
     //const AdoptarScreen(),
     const MapScreen(),
     //const MiniGamesScreen(),
+    CombinedSearchScreen(),
   ];
 
   @override
@@ -506,6 +508,10 @@ class HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.location_city),
             label: 'Mapa',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Busqueda',
           ),
           //BottomNavigationBarItem(
           //  icon: Icon(Icons.gamepad), // Icono de control de juego
